@@ -1,0 +1,79 @@
+package com.example.dulcemoment.data.network
+
+import retrofit2.http.Body
+import retrofit2.http.GET
+import retrofit2.http.Header
+import retrofit2.http.PATCH
+import retrofit2.http.POST
+import retrofit2.http.Path
+import retrofit2.http.Query
+
+interface ApiService {
+    @POST("api/v1/auth/register")
+    suspend fun register(@Body body: AuthRequest): AuthResponse
+
+    @POST("api/v1/auth/login")
+    suspend fun login(@Body body: AuthRequest): AuthResponse
+
+    @POST("api/v1/auth/refresh")
+    suspend fun refresh(@Body body: RefreshTokenRequest): AuthResponse
+
+    @POST("api/v1/auth/logout")
+    suspend fun logout(
+        @Header("Authorization") authHeader: String,
+        @Body body: LogoutRequest,
+    ): Map<String, Any>
+
+    @POST("api/v1/auth/logout-all")
+    suspend fun logoutAll(@Header("Authorization") authHeader: String): Map<String, Any>
+
+    @POST("api/v1/media/cloudinary/upload-url")
+    suspend fun uploadImageToCloudinary(
+        @Header("Authorization") authHeader: String,
+        @Body body: CloudinaryUploadRequest,
+    ): CloudinaryUploadResponse
+
+    @GET("api/v1/auth/me")
+    suspend fun me(@Header("Authorization") authHeader: String): UserDto
+
+    @GET("api/v1/products")
+    suspend fun products(@Query("only_active") onlyActive: Boolean = true): List<ProductDto>
+
+    @POST("api/v1/products")
+    suspend fun createProduct(
+        @Header("Authorization") authHeader: String,
+        @Body body: CreateProductRequest,
+    ): ProductDto
+
+    @PATCH("api/v1/products/{productId}")
+    suspend fun updateProduct(
+        @Header("Authorization") authHeader: String,
+        @Path("productId") productId: Int,
+        @Body body: UpdateProductRequest,
+    ): ProductDto
+
+    @POST("api/v1/orders")
+    suspend fun createOrder(
+        @Header("Authorization") authHeader: String,
+        @Body body: CreateOrderRequest,
+    ): OrderDto
+
+    @GET("api/v1/orders")
+    suspend fun orders(
+        @Header("Authorization") authHeader: String,
+        @Query("customer_id") customerId: Int? = null,
+    ): List<OrderDto>
+
+    @POST("api/v1/orders/{orderId}/status")
+    suspend fun updateOrderStatus(
+        @Header("Authorization") authHeader: String,
+        @Path("orderId") orderId: Int,
+        @Body body: UpdateOrderStatusRequest,
+    ): OrderDto
+
+    @POST("api/v1/payments/card")
+    suspend fun payCard(
+        @Header("Authorization") authHeader: String,
+        @Body body: CardPaymentRequest,
+    ): Map<String, Any>
+}

@@ -1,0 +1,5 @@
+<resources>
+    <dimen name="radius_large">24dp</dimen>
+    <dimen name="elevation_soft">4dp</dimen>
+    <dimen name="spacing_md">16dp</dimen>
+</resources>
