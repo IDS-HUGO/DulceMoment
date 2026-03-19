@@ -25,12 +25,12 @@ android {
 
     buildTypes {
         debug {
-            val apiBaseUrl = project.findProperty("API_BASE_URL") as String? ?: "http://10.0.2.2:8002/"
+            val apiBaseUrl = project.findProperty("API_BASE_URL") as String? ?: "https://ferluna.online/"
             buildConfigField("String", "API_BASE_URL", "\"$apiBaseUrl\"")
         }
         release {
             isMinifyEnabled = false
-            val apiBaseUrl = project.findProperty("API_BASE_URL") as String? ?: "https://tu-api-desplegada.com/"
+            val apiBaseUrl = project.findProperty("API_BASE_URL") as String? ?: "https://ferluna.online/"
             buildConfigField("String", "API_BASE_URL", "\"$apiBaseUrl\"")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
