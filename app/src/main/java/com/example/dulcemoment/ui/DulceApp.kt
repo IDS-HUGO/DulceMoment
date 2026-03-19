@@ -113,10 +113,7 @@ fun DulceApp(
         topBar = {
             CenterAlignedTopAppBar(
                 title = {
-                    Column(horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally) {
-                        Text("DulceMoment", style = MaterialTheme.typography.titleLarge)
-                        Text("MVP cliente + tienda", style = MaterialTheme.typography.bodyMedium)
-                    }
+                    Text("DulceMoment", style = MaterialTheme.typography.titleLarge)
                 }
             )
         }
@@ -302,8 +299,8 @@ private fun LoginScreen(
     onLogin: (String, String) -> Unit,
     onGoRegister: () -> Unit,
 ) {
-    var email by remember { mutableStateOf("cliente@dulce.com") }
-    var password by remember { mutableStateOf("123456") }
+    var email by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
 
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Text("Login", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
@@ -311,8 +308,6 @@ private fun LoginScreen(
         OutlinedTextField(value = password, onValueChange = { password = it }, label = { Text("Contraseña") }, modifier = Modifier.fillMaxWidth())
         Button(onClick = { onLogin(email, password) }) { Text("Iniciar sesión") }
         Button(onClick = onGoRegister) { Text("Ir a Register") }
-        Text("Demo Cliente: cliente@dulce.com / 123456")
-        Text("Demo Tienda: tienda@dulce.com / 123456")
     }
 }
 

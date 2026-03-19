@@ -25,8 +25,8 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -267,8 +267,8 @@ private fun LoginContent(
     onLogin: (String, String) -> Unit,
     onGoRegister: () -> Unit,
 ) {
-    var email by rememberSaveable { mutableStateOf("cliente@dulce.com") }
-    var password by rememberSaveable { mutableStateOf("123456") }
+    var email by rememberSaveable { mutableStateOf("") }
+    var password by rememberSaveable { mutableStateOf("") }
 
     val emailError = email.isNotBlank() && !email.contains("@")
     val passwordError = password.isNotBlank() && password.length < 6
@@ -279,7 +279,7 @@ private fun LoginContent(
     ) {
         // HEADERS MEJORADOS
         Text(
-            "Bienvenido de vuelta 👋",
+            "Bienvenido",
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.ExtraBold,
             color = Color(0xFF3E2723),
@@ -290,7 +290,7 @@ private fun LoginContent(
         OutlinedTextField(
             value = email,
             onValueChange = { email = it },
-            label = { Text("📧 Email") },
+            label = { Text("Email") },
             placeholder = { Text("tu@email.com") },
             isError = emailError,
             supportingText = { if (emailError) Text("Email inválido", color = Color(0xFFB3261E)) },
@@ -305,7 +305,7 @@ private fun LoginContent(
         OutlinedTextField(
             value = password,
             onValueChange = { password = it },
-            label = { Text("🔐 Contraseña") },
+            label = { Text("Contraseña") },
             placeholder = { Text("Min. 6 caracteres") },
             isError = passwordError,
             supportingText = { if (passwordError) Text("Mínimo 6 caracteres", color = Color(0xFFB3261E)) },
@@ -330,19 +330,13 @@ private fun LoginContent(
                 disabledContainerColor = Color(0xFFBCAAA4)
             )
         ) {
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text("🔐", fontSize = 20.sp)
-                Text(
-                    "INICIAR SESIÓN",
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.ExtraBold,
-                    color = Color.White,
-                    fontSize = 15.sp
-                )
-            }
+            Text(
+                "INICIAR SESIÓN",
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.ExtraBold,
+                color = Color.White,
+                fontSize = 15.sp
+            )
         }
 
         // DIVIDER ELEGANTE
@@ -353,9 +347,9 @@ private fun LoginContent(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            Divider(modifier = Modifier.weight(1f), color = Color(0xFFD7CCC8), thickness = 1.dp)
+            HorizontalDivider(modifier = Modifier.weight(1f), color = Color(0xFFD7CCC8), thickness = 1.dp)
             Text("o", style = MaterialTheme.typography.labelSmall, color = Color(0xFF8D6E63))
-            Divider(modifier = Modifier.weight(1f), color = Color(0xFFD7CCC8), thickness = 1.dp)
+            HorizontalDivider(modifier = Modifier.weight(1f), color = Color(0xFFD7CCC8), thickness = 1.dp)
         }
 
         // CREAR CUENTA BUTTON
@@ -371,97 +365,19 @@ private fun LoginContent(
                 contentColor = Color(0xFF3E2723)
             )
         ) {
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text("✨", fontSize = 20.sp)
-                Text(
-                    "CREAR CUENTA",
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.ExtraBold,
-                    fontSize = 15.sp
-                )
-            }
+            Text(
+                "CREAR CUENTA",
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.ExtraBold,
+                fontSize = 15.sp
+            )
         }
 
-        // DEMO INFO - SUPER DESTACADO
-        Surface(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(16.dp))
-                .shadow(8.dp, shape = RoundedCornerShape(16.dp)),
-            color = Color(0xFFF4E0DB).copy(alpha = 0.95f)
-        ) {
-            Column(
-                modifier = Modifier.padding(18.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text("🎯", fontSize = 22.sp)
-                    Text(
-                        "Cuentas Demo (Prueba gratis)",
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.ExtraBold,
-                        color = Color(0xFF3E2723),
-                        fontSize = 14.sp
-                    )
-                }
-
-                Divider(color = Color(0xFF3E2723).copy(alpha = 0.2f), thickness = 1.dp)
-
-                Column(
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        Text("👤", fontSize = 16.sp)
-                        Column {
-                            Text(
-                                "Cliente",
-                                style = MaterialTheme.typography.labelSmall,
-                                fontWeight = FontWeight.Bold,
-                                color = Color(0xFF5D4037)
-                            )
-                            Text(
-                                "cliente@dulce.com / 123456",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = Color(0xFF6D4C41),
-                                fontWeight = FontWeight.Medium
-                            )
-                        }
-                    }
-
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        Text("🏪", fontSize = 16.sp)
-                        Column {
-                            Text(
-                                "Vendedor",
-                                style = MaterialTheme.typography.labelSmall,
-                                fontWeight = FontWeight.Bold,
-                                color = Color(0xFF5D4037)
-                            )
-                            Text(
-                                "tienda@dulce.com / 123456",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = Color(0xFF6D4C41),
-                                fontWeight = FontWeight.Medium
-                            )
-                        }
-                    }
-                }
-            }
-        }
+        Text(
+            text = "Si necesitas acceso, solicita credenciales al administrador.",
+            style = MaterialTheme.typography.bodySmall,
+            color = Color(0xFF8D6E63)
+        )
     }
 }
 
@@ -496,7 +412,7 @@ private fun RegisterContent(
 
         // ROLE SELECTOR - VISUAL
         Text(
-            "¿Cuál es tu rol? 🎭",
+            "¿Cuál es tu rol?",
             style = MaterialTheme.typography.labelMedium,
             fontWeight = FontWeight.Bold,
             color = Color(0xFF3E2723)
@@ -522,7 +438,7 @@ private fun RegisterContent(
                     contentColor = if (role == "customer") Color.White else Color(0xFF3E2723)
                 )
             ) {
-                Text("👤 Cliente", fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
+                Text("Cliente", fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
             }
 
             Button(
@@ -536,7 +452,7 @@ private fun RegisterContent(
                     contentColor = if (role == "store") Color.White else Color(0xFF3E2723)
                 )
             ) {
-                Text("🏪 Vendedor", fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
+                Text("Vendedor", fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
             }
         }
 
@@ -544,7 +460,7 @@ private fun RegisterContent(
         OutlinedTextField(
             value = name,
             onValueChange = { name = it },
-            label = { Text("🙋 Nombre completo") },
+            label = { Text("Nombre completo") },
             placeholder = { Text("Tu nombre") },
             modifier = Modifier
                 .fillMaxWidth()
@@ -557,7 +473,7 @@ private fun RegisterContent(
         OutlinedTextField(
             value = email,
             onValueChange = { email = it },
-            label = { Text("📧 Email") },
+            label = { Text("Email") },
             placeholder = { Text("tu@email.com") },
             isError = emailError,
             supportingText = { if (emailError) Text("Email inválido", color = Color(0xFFB3261E)) },
@@ -572,7 +488,7 @@ private fun RegisterContent(
         OutlinedTextField(
             value = password,
             onValueChange = { password = it },
-            label = { Text("🔐 Contraseña") },
+            label = { Text("Contraseña") },
             placeholder = { Text("Min. 6 caracteres") },
             isError = passwordError,
             supportingText = { if (passwordError) Text("Mínimo 6 caracteres", color = Color(0xFFB3261E)) },
@@ -597,19 +513,13 @@ private fun RegisterContent(
                 disabledContainerColor = Color(0xFFBCAAA4)
             )
         ) {
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text("✨", fontSize = 20.sp)
-                Text(
-                    "CREAR CUENTA",
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.ExtraBold,
-                    color = Color.White,
-                    fontSize = 15.sp
-                )
-            }
+            Text(
+                "CREAR CUENTA",
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.ExtraBold,
+                color = Color.White,
+                fontSize = 15.sp
+            )
         }
 
         // DIVIDER
@@ -620,9 +530,9 @@ private fun RegisterContent(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            Divider(modifier = Modifier.weight(1f), color = Color(0xFFD7CCC8), thickness = 1.dp)
+            HorizontalDivider(modifier = Modifier.weight(1f), color = Color(0xFFD7CCC8), thickness = 1.dp)
             Text("o", style = MaterialTheme.typography.labelSmall, color = Color(0xFF8D6E63))
-            Divider(modifier = Modifier.weight(1f), color = Color(0xFFD7CCC8), thickness = 1.dp)
+            HorizontalDivider(modifier = Modifier.weight(1f), color = Color(0xFFD7CCC8), thickness = 1.dp)
         }
 
         // LOGIN BUTTON
@@ -638,18 +548,12 @@ private fun RegisterContent(
                 contentColor = Color(0xFF3E2723)
             )
         ) {
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text("🔐", fontSize = 20.sp)
-                Text(
-                    "INICIAR SESIÓN",
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.ExtraBold,
-                    fontSize = 15.sp
-                )
-            }
+            Text(
+                "INICIAR SESIÓN",
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.ExtraBold,
+                fontSize = 15.sp
+            )
         }
     }
 }
