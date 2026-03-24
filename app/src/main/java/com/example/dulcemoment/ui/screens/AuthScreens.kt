@@ -30,9 +30,9 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -72,22 +72,19 @@ fun LoginGlassScreen(
         modifier = Modifier
             .fillMaxSize()
             .background(gradient),
-        contentAlignment = Alignment.TopCenter
+        contentAlignment = Alignment.Center
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 18.dp)
-                .verticalScroll(rememberScrollState()),
+                .padding(horizontal = 18.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(20.dp)
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Spacer(modifier = Modifier.height(20.dp))
-
             // LOGO GRANDE Y HERMOSO
             Box(
                 modifier = Modifier
-                    .size(140.dp)
+                    .size(100.dp)
                     .shadow(16.dp, shape = RoundedCornerShape(28.dp))
                     .background(Color.White, shape = RoundedCornerShape(28.dp))
                     .clip(RoundedCornerShape(28.dp)),
@@ -97,7 +94,7 @@ fun LoginGlassScreen(
                     painter = painterResource(id = R.drawable.ic_dulce_moment),
                     contentDescription = "DulceMoment Logo",
                     modifier = Modifier
-                        .size(130.dp)
+                        .size(90.dp)
                         .clip(RoundedCornerShape(24.dp)),
                     contentScale = ContentScale.Inside
                 )
@@ -106,32 +103,30 @@ fun LoginGlassScreen(
             // TÍTULOS MEJORADÍSIMOS
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(6.dp)
+                verticalArrangement = Arrangement.spacedBy(2.dp)
             ) {
                 Text(
                     "DulceMoment",
-                    style = MaterialTheme.typography.headlineLarge,
+                    style = MaterialTheme.typography.headlineMedium,
                     fontWeight = FontWeight.ExtraBold,
                     color = Color(0xFF3E2723),
-                    fontSize = 36.sp
+                    fontSize = 28.sp
                 )
                 Text(
                     "Un sabor que enamora ✨",
-                    style = MaterialTheme.typography.titleSmall,
+                    style = MaterialTheme.typography.labelMedium,
                     color = Color(0xFF8D6E63),
                     fontWeight = FontWeight.SemiBold,
-                    fontSize = 14.sp
+                    fontSize = 12.sp
                 )
             }
-
-            Spacer(modifier = Modifier.height(8.dp))
 
             // CARD PRINCIPAL - SUPER ELEGANTE
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .shadow(20.dp, shape = RoundedCornerShape(32.dp)),
-                shape = RoundedCornerShape(32.dp),
+                    .shadow(20.dp, shape = RoundedCornerShape(28.dp)),
+                shape = RoundedCornerShape(28.dp),
                 colors = CardDefaults.cardColors(
                     containerColor = Color.White
                 ),
@@ -140,8 +135,8 @@ fun LoginGlassScreen(
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(36.dp),
-                    verticalArrangement = Arrangement.spacedBy(22.dp)
+                        .padding(28.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     AnimatedContent(
                         targetState = true,
@@ -152,8 +147,6 @@ fun LoginGlassScreen(
                     }
                 }
             }
-
-            Spacer(modifier = Modifier.height(24.dp))
         }
     }
 }
@@ -177,7 +170,7 @@ fun RegisterGlassScreen(
         modifier = Modifier
             .fillMaxSize()
             .background(gradient),
-        contentAlignment = Alignment.TopCenter
+        contentAlignment = Alignment.Center
     ) {
         Column(
             modifier = Modifier
@@ -185,13 +178,11 @@ fun RegisterGlassScreen(
                 .padding(horizontal = 18.dp)
                 .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(20.dp)
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Spacer(modifier = Modifier.height(20.dp))
-
             Box(
                 modifier = Modifier
-                    .size(140.dp)
+                    .size(100.dp)
                     .shadow(16.dp, shape = RoundedCornerShape(28.dp))
                     .background(Color.White, shape = RoundedCornerShape(28.dp))
                     .clip(RoundedCornerShape(28.dp)),
@@ -201,7 +192,7 @@ fun RegisterGlassScreen(
                     painter = painterResource(id = R.drawable.ic_dulce_moment),
                     contentDescription = "DulceMoment Logo",
                     modifier = Modifier
-                        .size(130.dp)
+                        .size(90.dp)
                         .clip(RoundedCornerShape(24.dp)),
                     contentScale = ContentScale.Inside
                 )
@@ -209,30 +200,29 @@ fun RegisterGlassScreen(
 
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(6.dp)
+                verticalArrangement = Arrangement.spacedBy(2.dp)
             ) {
                 Text(
                     "DulceMoment",
-                    style = MaterialTheme.typography.headlineLarge,
+                    style = MaterialTheme.typography.headlineMedium,
                     fontWeight = FontWeight.ExtraBold,
                     color = Color(0xFF3E2723),
-                    fontSize = 36.sp
+                    fontSize = 28.sp
                 )
                 Text(
                     "Únete a nuestra comunidad",
-                    style = MaterialTheme.typography.titleSmall,
+                    style = MaterialTheme.typography.labelMedium,
                     color = Color(0xFF8D6E63),
-                    fontWeight = FontWeight.SemiBold
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 12.sp
                 )
             }
-
-            Spacer(modifier = Modifier.height(8.dp))
 
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .shadow(20.dp, shape = RoundedCornerShape(32.dp)),
-                shape = RoundedCornerShape(32.dp),
+                    .shadow(20.dp, shape = RoundedCornerShape(28.dp)),
+                shape = RoundedCornerShape(28.dp),
                 colors = CardDefaults.cardColors(
                     containerColor = Color.White
                 ),
@@ -241,8 +231,8 @@ fun RegisterGlassScreen(
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(36.dp),
-                    verticalArrangement = Arrangement.spacedBy(22.dp)
+                        .padding(28.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     AnimatedContent(
                         targetState = true,
@@ -254,7 +244,7 @@ fun RegisterGlassScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(16.dp))
         }
     }
 }
@@ -275,56 +265,76 @@ private fun LoginContent(
     val isFormValid = !emailError && !passwordError && email.isNotBlank() && password.isNotBlank()
 
     Column(
-        verticalArrangement = Arrangement.spacedBy(18.dp)
+        verticalArrangement = Arrangement.spacedBy(14.dp)
     ) {
-        // HEADERS MEJORADOS
+        // HEADER
         Text(
-            "Bienvenido",
+            "Bienvenido de vuelta",
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.ExtraBold,
             color = Color(0xFF3E2723),
-            fontSize = 20.sp
+            fontSize = 18.sp
         )
 
-        // EMAIL FIELD - HERMOSO
+        // EMAIL FIELD - DISEÑO MEJORADO
         OutlinedTextField(
             value = email,
             onValueChange = { email = it },
-            label = { Text("Email") },
-            placeholder = { Text("tu@email.com") },
+            label = { Text("Email", fontSize = 12.sp) },
+            placeholder = { Text("tu@email.com", fontSize = 13.sp) },
             isError = emailError,
-            supportingText = { if (emailError) Text("Email inválido", color = Color(0xFFB3261E)) },
+            supportingText = { if (emailError) Text("Email inválido", color = Color(0xFFB3261E), fontSize = 10.sp) },
             modifier = Modifier
                 .fillMaxWidth()
-                .shadow(6.dp, shape = RoundedCornerShape(16.dp)),
-            shape = RoundedCornerShape(16.dp),
-            singleLine = true
+                .height(56.dp),
+            shape = RoundedCornerShape(14.dp),
+            colors = OutlinedTextFieldDefaults.colors(
+                unfocusedContainerColor = Color(0xFFF0E6E1),
+                focusedContainerColor = Color.White,
+                unfocusedBorderColor = Color(0xFFE0D5CF),
+                focusedBorderColor = Color(0xFF3E2723),
+                cursorColor = Color(0xFF3E2723),
+                focusedLabelColor = Color(0xFF3E2723),
+                unfocusedLabelColor = Color(0xFF8D6E63)
+            ),
+            singleLine = true,
+            textStyle = MaterialTheme.typography.bodyMedium
         )
 
-        // PASSWORD FIELD - HERMOSO
+        // PASSWORD FIELD - DISEÑO MEJORADO
         OutlinedTextField(
             value = password,
             onValueChange = { password = it },
-            label = { Text("Contraseña") },
-            placeholder = { Text("Min. 6 caracteres") },
+            label = { Text("Contraseña", fontSize = 12.sp) },
+            placeholder = { Text("Min. 6 caracteres", fontSize = 13.sp) },
             isError = passwordError,
-            supportingText = { if (passwordError) Text("Mínimo 6 caracteres", color = Color(0xFFB3261E)) },
+            supportingText = { if (passwordError) Text("Mínimo 6 caracteres", color = Color(0xFFB3261E), fontSize = 10.sp) },
             modifier = Modifier
                 .fillMaxWidth()
-                .shadow(6.dp, shape = RoundedCornerShape(16.dp)),
-            shape = RoundedCornerShape(16.dp),
-            singleLine = true
+                .height(56.dp),
+            shape = RoundedCornerShape(14.dp),
+            colors = OutlinedTextFieldDefaults.colors(
+                unfocusedContainerColor = Color(0xFFF0E6E1),
+                focusedContainerColor = Color.White,
+                unfocusedBorderColor = Color(0xFFE0D5CF),
+                focusedBorderColor = Color(0xFF3E2723),
+                cursorColor = Color(0xFF3E2723),
+                focusedLabelColor = Color(0xFF3E2723),
+                unfocusedLabelColor = Color(0xFF8D6E63)
+            ),
+            singleLine = true,
+            textStyle = MaterialTheme.typography.bodyMedium
         )
 
-        // LOGIN BUTTON - PREMIUM
+        // LOGIN BUTTON - ELEGANTE CON SOMBRA
         Button(
             onClick = { onLogin(email.trim(), password) },
             enabled = isFormValid,
             modifier = Modifier
                 .fillMaxWidth()
-                .height(56.dp)
-                .shadow(10.dp, shape = RoundedCornerShape(16.dp)),
-            shape = RoundedCornerShape(16.dp),
+                .height(52.dp)
+                .shadow(8.dp, shape = RoundedCornerShape(14.dp)),
+            shape = RoundedCornerShape(14.dp),
             colors = ButtonDefaults.buttonColors(
                 containerColor = Color(0xFF3E2723),
                 disabledContainerColor = Color(0xFFBCAAA4)
@@ -332,10 +342,11 @@ private fun LoginContent(
         ) {
             Text(
                 "INICIAR SESIÓN",
-                style = MaterialTheme.typography.titleSmall,
+                style = MaterialTheme.typography.labelLarge,
                 fontWeight = FontWeight.ExtraBold,
                 color = Color.White,
-                fontSize = 15.sp
+                fontSize = 14.sp,
+                letterSpacing = 0.5.sp
             )
         }
 
@@ -343,41 +354,36 @@ private fun LoginContent(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 8.dp),
+                .padding(vertical = 4.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             HorizontalDivider(modifier = Modifier.weight(1f), color = Color(0xFFD7CCC8), thickness = 1.dp)
-            Text("o", style = MaterialTheme.typography.labelSmall, color = Color(0xFF8D6E63))
+            Text("o", style = MaterialTheme.typography.labelSmall, color = Color(0xFF9D8B85), fontSize = 12.sp)
             HorizontalDivider(modifier = Modifier.weight(1f), color = Color(0xFFD7CCC8), thickness = 1.dp)
         }
 
-        // CREAR CUENTA BUTTON
-        OutlinedButton(
+        // CREAR CUENTA BUTTON - DISEÑO MEJORADO
+        Button(
             onClick = onGoRegister,
             modifier = Modifier
                 .fillMaxWidth()
-                .height(56.dp)
-                .shadow(8.dp, shape = RoundedCornerShape(16.dp)),
-            shape = RoundedCornerShape(16.dp),
-            border = BorderStroke(2.5.dp, Color(0xFF3E2723)),
-            colors = ButtonDefaults.outlinedButtonColors(
-                contentColor = Color(0xFF3E2723)
+                .height(52.dp)
+                .shadow(6.dp, shape = RoundedCornerShape(14.dp)),
+            shape = RoundedCornerShape(14.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color(0xFFF4E0DB)
             )
         ) {
             Text(
                 "CREAR CUENTA",
-                style = MaterialTheme.typography.titleSmall,
+                style = MaterialTheme.typography.labelLarge,
                 fontWeight = FontWeight.ExtraBold,
-                fontSize = 15.sp
+                color = Color(0xFF3E2723),
+                fontSize = 14.sp,
+                letterSpacing = 0.5.sp
             )
         }
-
-        Text(
-            text = "Si necesitas acceso, solicita credenciales al administrador.",
-            style = MaterialTheme.typography.bodySmall,
-            color = Color(0xFF8D6E63)
-        )
     }
 }
 
@@ -399,7 +405,7 @@ private fun RegisterContent(
     val isFormValid = name.isNotBlank() && !emailError && !passwordError && email.isNotBlank()
 
     Column(
-        verticalArrangement = Arrangement.spacedBy(18.dp)
+        verticalArrangement = Arrangement.spacedBy(14.dp)
     ) {
         // HEADER
         Text(
@@ -407,107 +413,138 @@ private fun RegisterContent(
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.ExtraBold,
             color = Color(0xFF3E2723),
-            fontSize = 20.sp
+            fontSize = 18.sp
         )
 
-        // ROLE SELECTOR - VISUAL
+        // ROLE SELECTOR - VISUAL MEJORADO
         Text(
             "¿Cuál es tu rol?",
             style = MaterialTheme.typography.labelMedium,
-            fontWeight = FontWeight.Bold,
-            color = Color(0xFF3E2723)
+            fontWeight = FontWeight.SemiBold,
+            color = Color(0xFF3E2723),
+            fontSize = 12.sp
         )
 
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .clip(RoundedCornerShape(16.dp))
-                .background(Color(0xFFF4E0DB).copy(alpha = 0.4f))
-                .padding(6.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                .clip(RoundedCornerShape(12.dp))
+                .background(Color(0xFFF0E6E1))
+                .padding(4.dp),
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Button(
                 onClick = { role = "customer" },
                 modifier = Modifier
                     .weight(1f)
-                    .height(48.dp),
-                shape = RoundedCornerShape(13.dp),
+                    .height(44.dp),
+                shape = RoundedCornerShape(10.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = if (role == "customer") Color(0xFF3E2723) else Color.White,
+                    containerColor = if (role == "customer") Color(0xFF3E2723) else Color.Transparent,
                     contentColor = if (role == "customer") Color.White else Color(0xFF3E2723)
                 )
             ) {
-                Text("Cliente", fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
+                Text("Cliente", fontWeight = FontWeight.Bold, fontSize = 12.sp)
             }
 
             Button(
                 onClick = { role = "store" },
                 modifier = Modifier
                     .weight(1f)
-                    .height(48.dp),
-                shape = RoundedCornerShape(13.dp),
+                    .height(44.dp),
+                shape = RoundedCornerShape(10.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = if (role == "store") Color(0xFF3E2723) else Color.White,
+                    containerColor = if (role == "store") Color(0xFF3E2723) else Color.Transparent,
                     contentColor = if (role == "store") Color.White else Color(0xFF3E2723)
                 )
             ) {
-                Text("Vendedor", fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
+                Text("Vendedor", fontWeight = FontWeight.Bold, fontSize = 12.sp)
             }
         }
 
-        // NAME FIELD
+        // NAME FIELD - DISEÑO MEJORADO
         OutlinedTextField(
             value = name,
             onValueChange = { name = it },
-            label = { Text("Nombre completo") },
-            placeholder = { Text("Tu nombre") },
+            label = { Text("Nombre completo", fontSize = 12.sp) },
+            placeholder = { Text("Ej: María García", fontSize = 13.sp) },
             modifier = Modifier
                 .fillMaxWidth()
-                .shadow(6.dp, shape = RoundedCornerShape(16.dp)),
-            shape = RoundedCornerShape(16.dp),
-            singleLine = true
+                .height(56.dp),
+            shape = RoundedCornerShape(14.dp),
+            colors = OutlinedTextFieldDefaults.colors(
+                unfocusedContainerColor = Color(0xFFF0E6E1),
+                focusedContainerColor = Color.White,
+                unfocusedBorderColor = Color(0xFFE0D5CF),
+                focusedBorderColor = Color(0xFF3E2723),
+                cursorColor = Color(0xFF3E2723),
+                focusedLabelColor = Color(0xFF3E2723),
+                unfocusedLabelColor = Color(0xFF8D6E63)
+            ),
+            singleLine = true,
+            textStyle = MaterialTheme.typography.bodyMedium
         )
 
-        // EMAIL FIELD
+        // EMAIL FIELD - DISEÑO MEJORADO
         OutlinedTextField(
             value = email,
             onValueChange = { email = it },
-            label = { Text("Email") },
-            placeholder = { Text("tu@email.com") },
+            label = { Text("Email", fontSize = 12.sp) },
+            placeholder = { Text("tu@email.com", fontSize = 13.sp) },
             isError = emailError,
-            supportingText = { if (emailError) Text("Email inválido", color = Color(0xFFB3261E)) },
+            supportingText = { if (emailError) Text("Email inválido", color = Color(0xFFB3261E), fontSize = 10.sp) },
             modifier = Modifier
                 .fillMaxWidth()
-                .shadow(6.dp, shape = RoundedCornerShape(16.dp)),
-            shape = RoundedCornerShape(16.dp),
-            singleLine = true
+                .height(56.dp),
+            shape = RoundedCornerShape(14.dp),
+            colors = OutlinedTextFieldDefaults.colors(
+                unfocusedContainerColor = Color(0xFFF0E6E1),
+                focusedContainerColor = Color.White,
+                unfocusedBorderColor = Color(0xFFE0D5CF),
+                focusedBorderColor = Color(0xFF3E2723),
+                cursorColor = Color(0xFF3E2723),
+                focusedLabelColor = Color(0xFF3E2723),
+                unfocusedLabelColor = Color(0xFF8D6E63)
+            ),
+            singleLine = true,
+            textStyle = MaterialTheme.typography.bodyMedium
         )
 
-        // PASSWORD FIELD - HERMOSO
+        // PASSWORD FIELD - DISEÑO MEJORADO
         OutlinedTextField(
             value = password,
             onValueChange = { password = it },
-            label = { Text("Contraseña") },
-            placeholder = { Text("Min. 6 caracteres") },
+            label = { Text("Contraseña", fontSize = 12.sp) },
+            placeholder = { Text("Min. 6 caracteres", fontSize = 13.sp) },
             isError = passwordError,
-            supportingText = { if (passwordError) Text("Mínimo 6 caracteres", color = Color(0xFFB3261E)) },
+            supportingText = { if (passwordError) Text("Mínimo 6 caracteres", color = Color(0xFFB3261E), fontSize = 10.sp) },
             modifier = Modifier
                 .fillMaxWidth()
-                .shadow(6.dp, shape = RoundedCornerShape(16.dp)),
-            shape = RoundedCornerShape(16.dp),
-            singleLine = true
+                .height(56.dp),
+            shape = RoundedCornerShape(14.dp),
+            colors = OutlinedTextFieldDefaults.colors(
+                unfocusedContainerColor = Color(0xFFF0E6E1),
+                focusedContainerColor = Color.White,
+                unfocusedBorderColor = Color(0xFFE0D5CF),
+                focusedBorderColor = Color(0xFF3E2723),
+                cursorColor = Color(0xFF3E2723),
+                focusedLabelColor = Color(0xFF3E2723),
+                unfocusedLabelColor = Color(0xFF8D6E63)
+            ),
+            singleLine = true,
+            textStyle = MaterialTheme.typography.bodyMedium
         )
 
-        // CREAR CUENTA BUTTON
+        // CREAR CUENTA BUTTON - ELEGANTE
         Button(
             onClick = { onRegister(name.trim(), email.trim(), password, role) },
             enabled = isFormValid,
             modifier = Modifier
                 .fillMaxWidth()
-                .height(56.dp)
-                .shadow(10.dp, shape = RoundedCornerShape(16.dp)),
-            shape = RoundedCornerShape(16.dp),
+                .height(52.dp)
+                .shadow(8.dp, shape = RoundedCornerShape(14.dp)),
+            shape = RoundedCornerShape(14.dp),
             colors = ButtonDefaults.buttonColors(
                 containerColor = Color(0xFF3E2723),
                 disabledContainerColor = Color(0xFFBCAAA4)
@@ -515,10 +552,11 @@ private fun RegisterContent(
         ) {
             Text(
                 "CREAR CUENTA",
-                style = MaterialTheme.typography.titleSmall,
+                style = MaterialTheme.typography.labelLarge,
                 fontWeight = FontWeight.ExtraBold,
                 color = Color.White,
-                fontSize = 15.sp
+                fontSize = 14.sp,
+                letterSpacing = 0.5.sp
             )
         }
 
@@ -526,33 +564,34 @@ private fun RegisterContent(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 8.dp),
+                .padding(vertical = 4.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             HorizontalDivider(modifier = Modifier.weight(1f), color = Color(0xFFD7CCC8), thickness = 1.dp)
-            Text("o", style = MaterialTheme.typography.labelSmall, color = Color(0xFF8D6E63))
+            Text("o", style = MaterialTheme.typography.labelSmall, color = Color(0xFF9D8B85), fontSize = 12.sp)
             HorizontalDivider(modifier = Modifier.weight(1f), color = Color(0xFFD7CCC8), thickness = 1.dp)
         }
 
-        // LOGIN BUTTON
-        OutlinedButton(
+        // LOGIN BUTTON - DISEÑO MEJORADO
+        Button(
             onClick = onGoLogin,
             modifier = Modifier
                 .fillMaxWidth()
-                .height(56.dp)
-                .shadow(8.dp, shape = RoundedCornerShape(16.dp)),
-            shape = RoundedCornerShape(16.dp),
-            border = BorderStroke(2.5.dp, Color(0xFF3E2723)),
-            colors = ButtonDefaults.outlinedButtonColors(
-                contentColor = Color(0xFF3E2723)
+                .height(52.dp)
+                .shadow(6.dp, shape = RoundedCornerShape(14.dp)),
+            shape = RoundedCornerShape(14.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color(0xFFF4E0DB)
             )
         ) {
             Text(
                 "INICIAR SESIÓN",
-                style = MaterialTheme.typography.titleSmall,
+                style = MaterialTheme.typography.labelLarge,
                 fontWeight = FontWeight.ExtraBold,
-                fontSize = 15.sp
+                color = Color(0xFF3E2723),
+                fontSize = 14.sp,
+                letterSpacing = 0.5.sp
             )
         }
     }

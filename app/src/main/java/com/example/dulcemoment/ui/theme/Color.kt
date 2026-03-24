@@ -2,12 +2,12 @@ package com.example.dulcemoment.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-val CreamPrimary = Color(0xFFFDFBF5)
-val ChocolateSecondary = Color(0xFF3E2723)
-val PastelAccent = Color(0xFFF4E0DB)
-val ErrorRed = Color(0xFFB3261E)
+val CreamPrimary = Color(0xFFFAF7F0)           // Fondo mejorado (menos claro)
+val ChocolateSecondary = Color(0xFF3E2723)     // Secundario (marrón)
+val PastelAccent = Color(0xFFF4E0DB)          // Acentos (rosa pastel)
+val ErrorRed = Color(0xFFB3261E)              // Error
 
-val OnCreamPrimary = Color(0xFF2A1C18)
+val OnCreamPrimary = Color(0xFF1F1410)         // Texto más oscuro
 val CreamPrimaryContainer = Color(0xFFFFF7EA)
 val OnCreamPrimaryContainer = Color(0xFF312320)
 
@@ -18,10 +18,10 @@ val OnChocolateContainer = Color(0xFFFFE6DE)
 val AccentTertiary = Color(0xFFEFC7BE)
 val OnAccentTertiary = Color(0xFF3A201C)
 
-val BackgroundLight = Color(0xFFFDFBF5)
-val OnBackgroundLight = Color(0xFF2A1C18)
+val BackgroundLight = Color(0xFFFAF7F0)
+val OnBackgroundLight = Color(0xFF1F1410)
 val SurfaceLight = Color(0xFFFFFBF8)
-val OnSurfaceLight = Color(0xFF2A1C18)
+val OnSurfaceLight = Color(0xFF1F1410)
 
 val DarkCreamPrimary = Color(0xFFDCCFC2)
 val DarkOnCreamPrimary = Color(0xFF271B17)

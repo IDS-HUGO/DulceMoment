@@ -88,6 +88,7 @@ fun SellerModuleScreen(
                 label = { Text("Nombre") },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp),
+                textStyle = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurface),
             )
             OutlinedTextField(
                 value = description,
@@ -95,6 +96,7 @@ fun SellerModuleScreen(
                 label = { Text("Descripción") },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp),
+                textStyle = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurface),
             )
             OutlinedTextField(
                 value = basePrice,
@@ -102,6 +104,7 @@ fun SellerModuleScreen(
                 label = { Text("Precio base") },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp),
+                textStyle = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurface),
             )
             OutlinedTextField(
                 value = stock,
@@ -109,6 +112,7 @@ fun SellerModuleScreen(
                 label = { Text("Stock") },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp),
+                textStyle = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurface),
             )
             OutlinedTextField(
                 value = sourceUrl,
@@ -116,6 +120,7 @@ fun SellerModuleScreen(
                 label = { Text("URL para Cloudinary") },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp),
+                textStyle = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurface),
             )
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Button(onClick = { picker.launch("image/*") }) { Text("Picker galería") }
@@ -127,6 +132,7 @@ fun SellerModuleScreen(
                 label = { Text("Imagen seleccionada") },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp),
+                textStyle = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurface),
             )
             Spacer(modifier = Modifier.height(8.dp))
             Button(
