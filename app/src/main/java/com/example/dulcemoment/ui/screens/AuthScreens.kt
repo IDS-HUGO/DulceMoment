@@ -21,12 +21,17 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -48,6 +53,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.dulcemoment.R
@@ -259,6 +266,7 @@ private fun LoginContent(
 ) {
     var email by rememberSaveable { mutableStateOf("") }
     var password by rememberSaveable { mutableStateOf("") }
+    var passwordVisible by rememberSaveable { mutableStateOf(false) }
 
     val emailError = email.isNotBlank() && !email.contains("@")
     val passwordError = password.isNotBlank() && password.length < 6
@@ -305,7 +313,7 @@ private fun LoginContent(
             textStyle = MaterialTheme.typography.bodyMedium
         )
 
-        // PASSWORD FIELD - DISEÑO MEJORADO
+        // PASSWORD FIELD - CON TOGGLE DE VISIBILIDAD
         OutlinedTextField(
             value = password,
             onValueChange = { password = it },
@@ -331,7 +339,17 @@ private fun LoginContent(
                 unfocusedPlaceholderColor = Color(0xFF8D6E63)
             ),
             singleLine = true,
-            textStyle = MaterialTheme.typography.bodyMedium
+            textStyle = MaterialTheme.typography.bodyMedium,
+            visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+            trailingIcon = {
+                IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                    Icon(
+                        imageVector = if (passwordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff,
+                        contentDescription = if (passwordVisible) "Ocultar contraseña" else "Mostrar contraseña",
+                        tint = Color(0xFF8D6E63)
+                    )
+                }
+            }
         )
 
         // LOGIN BUTTON - ELEGANTE CON SOMBRA
@@ -406,6 +424,7 @@ private fun RegisterContent(
     var name by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    var passwordVisible by remember { mutableStateOf(false) }
     var role by remember { mutableStateOf("customer") }
 
     val emailError = email.isNotBlank() && !email.contains("@")
@@ -527,7 +546,7 @@ private fun RegisterContent(
             textStyle = MaterialTheme.typography.bodyMedium
         )
 
-        // PASSWORD FIELD - DISEÑO MEJORADO
+        // PASSWORD FIELD - CON TOGGLE DE VISIBILIDAD
         OutlinedTextField(
             value = password,
             onValueChange = { password = it },
@@ -553,7 +572,17 @@ private fun RegisterContent(
                 unfocusedPlaceholderColor = Color(0xFF8D6E63)
             ),
             singleLine = true,
-            textStyle = MaterialTheme.typography.bodyMedium
+            textStyle = MaterialTheme.typography.bodyMedium,
+            visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+            trailingIcon = {
+                IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                    Icon(
+                        imageVector = if (passwordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff,
+                        contentDescription = if (passwordVisible) "Ocultar contraseña" else "Mostrar contraseña",
+                        tint = Color(0xFF8D6E63)
+                    )
+                }
+            }
         )
 
         // CREAR CUENTA BUTTON - ELEGANTE

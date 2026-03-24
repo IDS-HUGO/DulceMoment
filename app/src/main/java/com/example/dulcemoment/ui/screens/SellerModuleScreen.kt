@@ -15,6 +15,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
@@ -32,13 +33,17 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.dulcemoment.data.local.OrderWithDetails
 import com.example.dulcemoment.data.local.ProductWithOptions
+import com.example.dulcemoment.ui.theme.ThemeConstants
 
 @Composable
 fun SellerModuleScreen(
@@ -64,17 +69,17 @@ fun SellerModuleScreen(
     var selectedImageUri by rememberSaveable { mutableStateOf<String?>(null) }
 
     val fieldColors = OutlinedTextFieldDefaults.colors(
-        focusedTextColor = MaterialTheme.colorScheme.onSurface,
-        unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
-        focusedContainerColor = MaterialTheme.colorScheme.surface,
-        unfocusedContainerColor = MaterialTheme.colorScheme.surface,
-        focusedBorderColor = MaterialTheme.colorScheme.secondary,
-        unfocusedBorderColor = MaterialTheme.colorScheme.outline,
-        cursorColor = MaterialTheme.colorScheme.secondary,
-        focusedLabelColor = MaterialTheme.colorScheme.secondary,
-        unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
-        focusedPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant,
-        unfocusedPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant,
+        focusedTextColor = ThemeConstants.OnCreamPrimary,
+        unfocusedTextColor = ThemeConstants.OnCreamPrimary,
+        focusedContainerColor = ThemeConstants.SurfaceLight,
+        unfocusedContainerColor = ThemeConstants.SurfaceLighter,
+        focusedBorderColor = ThemeConstants.ChocolateSecondary,
+        unfocusedBorderColor = ThemeConstants.BorderLight,
+        cursorColor = ThemeConstants.ChocolateSecondary,
+        focusedLabelColor = ThemeConstants.ChocolateSecondary,
+        unfocusedLabelColor = ThemeConstants.TextMedium,
+        focusedPlaceholderColor = ThemeConstants.TextMedium,
+        unfocusedPlaceholderColor = ThemeConstants.TextMedium,
     )
 
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
@@ -89,43 +94,89 @@ fun SellerModuleScreen(
         }
     }
 
-    LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+    LazyColumn(
+        modifier = Modifier.background(ThemeConstants.CreamPrimary),
+        verticalArrangement = Arrangement.spacedBy(10.dp)
+    ) {
         item {
-            Text("Panel administrativo", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            Column(
+                modifier = Modifier.padding(12.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                FilledTonalButton(onClick = onLogout, modifier = Modifier.weight(1f)) { Text("Cerrar sesión", maxLines = 1) }
-                FilledTonalButton(onClick = onLogoutAll, modifier = Modifier.weight(1f)) { Text("Cerrar en todos", maxLines = 1) }
-                Button(onClick = onRefresh, modifier = Modifier.weight(1f)) { Text("Actualizar", maxLines = 1) }
+                Text(
+                    "Panel administrativo",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = ThemeConstants.ChocolateSecondary
+                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    FilledTonalButton(
+                        onClick = onLogout,
+                        modifier = Modifier.weight(1f),
+                        colors = androidx.compose.material3.FilledTonalButtonDefaults.filledTonalButtonColors(
+                            containerColor = ThemeConstants.PastelAccent
+                        )
+                    ) {
+                        Text("Cerrar sesión", maxLines = 1, fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
+                    }
+                    FilledTonalButton(
+                        onClick = onLogoutAll,
+                        modifier = Modifier.weight(1f),
+                        colors = androidx.compose.material3.FilledTonalButtonDefaults.filledTonalButtonColors(
+                            containerColor = ThemeConstants.PastelAccent
+                        )
+                    ) {
+                        Text("Cerrar en todos", maxLines = 1, fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
+                    }
+                    Button(
+                        onClick = onRefresh,
+                        modifier = Modifier.weight(1f),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = ThemeConstants.ChocolateSecondary
+                        )
+                    ) {
+                        Text("Actualizar", maxLines = 1, fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
+                    }
+                }
             }
         }
 
         item {
-            Text("Alta de producto", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-            OutlinedTextField(
-                value = name,
-                onValueChange = { name = it },
-                label = { Text("Nombre") },
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(16.dp),
-                colors = fieldColors,
-            )
-            OutlinedTextField(
-                value = description,
-                onValueChange = { description = it },
-                label = { Text("Descripción") },
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(16.dp),
-                colors = fieldColors,
-            )
-            OutlinedTextField(
-                value = basePrice,
-                onValueChange = { basePrice = it },
-                label = { Text("Precio base") },
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(16.dp),
+            Column(
+                modifier = Modifier.padding(horizontal = 12.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Text(
+                    "Alta de producto",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    color = ThemeConstants.ChocolateSecondary
+                )
+                OutlinedTextField(
+                    value = name,
+                    onValueChange = { name = it },
+                    label = { Text("Nombre") },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = fieldColors,
+                )
+                OutlinedTextField(
+                    value = description,
+                    onValueChange = { description = it },
+                    label = { Text("Descripción") },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = fieldColors,
+                )
+                OutlinedTextField(
+                    value = basePrice,
+                    onValueChange = { basePrice = it },
+                    label = { Text("Precio base") },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp),
                 colors = fieldColors,
             )
             OutlinedTextField(
@@ -134,64 +185,109 @@ fun SellerModuleScreen(
                 label = { Text("Stock") },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp),
-                colors = fieldColors,
-            )
-            Text(
-                text = "Imagen del producto",
-                style = MaterialTheme.typography.titleSmall,
-                fontWeight = FontWeight.SemiBold,
-            )
-            Box(modifier = Modifier.fillMaxWidth().height(140.dp)) {
-                val uriString = selectedImageUri
-                if (uriString != null) {
-                    AsyncImage(
-                        model = Uri.parse(uriString),
-                        contentDescription = "Imagen seleccionada",
-                        modifier = Modifier.fillMaxWidth().height(140.dp),
-                        contentScale = ContentScale.Crop,
-                    )
-                } else {
-                    Card(
-                        modifier = Modifier.fillMaxWidth().height(140.dp),
-                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                    ) {
-                        Box(modifier = Modifier.fillMaxWidth().height(140.dp), contentAlignment = androidx.compose.ui.Alignment.Center) {
-                            Text("Sin imagen seleccionada", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    colors = fieldColors,
+                )
+                Text(
+                    text = "Imagen del producto",
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.SemiBold,
+                    color = ThemeConstants.ChocolateSecondary,
+                )
+                Box(modifier = Modifier
+                    .fillMaxWidth()
+                    .height(140.dp)) {
+                    val uriString = selectedImageUri
+                    if (uriString != null) {
+                        AsyncImage(
+                            model = Uri.parse(uriString),
+                            contentDescription = "Imagen seleccionada",
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(140.dp),
+                            contentScale = ContentScale.Crop,
+                        )
+                    } else {
+                        Card(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(140.dp),
+                            colors = CardDefaults.cardColors(containerColor = ThemeConstants.SurfaceLight),
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(140.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    "Sin imagen seleccionada",
+                                    color = ThemeConstants.TextMedium
+                                )
+                            }
                         }
                     }
                 }
-            }
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                Button(onClick = { picker.launch("image/*") }, modifier = Modifier.weight(1f)) {
-                    Text("Seleccionar imagen", maxLines = 1)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    Button(
+                        onClick = { picker.launch("image/*") },
+                        modifier = Modifier.weight(1f),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = ThemeConstants.ChocolateSecondary
+                        )
+                    ) {
+                        Text("Seleccionar imagen", maxLines = 1, fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
+                    }
+                    FilledTonalButton(
+                        onClick = { selectedImageUri?.let { onUploadImage(Uri.parse(it)) } },
+                        modifier = Modifier.weight(1f),
+                        enabled = selectedImageUri != null,
+                        colors = androidx.compose.material3.FilledTonalButtonDefaults.filledTonalButtonColors(
+                            containerColor = ThemeConstants.PastelAccent
+                        )
+                    ) {
+                        Text("Subir", maxLines = 1, fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
+                    }
                 }
-                FilledTonalButton(onClick = { selectedImageUri?.let { onUploadImage(Uri.parse(it)) } }, modifier = Modifier.weight(1f), enabled = selectedImageUri != null) {
-                    Text("Subir", maxLines = 1)
+                if (imageUrl.isNotBlank()) {
+                    Text(
+                        "✓ Imagen lista para publicar",
+                        color = ThemeConstants.ChocolateSecondary,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                } else {
+                    Text(
+                        "Selecciona una imagen y súbela",
+                        color = ThemeConstants.TextMedium
+                    )
                 }
-            }
-            if (imageUrl.isNotBlank()) {
-                Text("✓ Imagen lista para publicar", color = MaterialTheme.colorScheme.secondary, fontWeight = FontWeight.SemiBold)
-            } else {
-                Text("Selecciona una imagen y súbela", color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
-            Spacer(modifier = Modifier.height(8.dp))
-            Button(
-                onClick = {
-                    val price = basePrice.toDoubleOrNull() ?: return@Button
-                    val units = stock.toIntOrNull() ?: return@Button
-                    onAddProduct(name, description, price, units, imageUrl)
-                },
-                enabled = imageUrl.isNotBlank(),
-            ) {
-                Text("Publicar producto")
+                Button(
+                    onClick = {
+                        val price = basePrice.toDoubleOrNull() ?: return@Button
+                        val units = stock.toIntOrNull() ?: return@Button
+                        onAddProduct(name, description, price, units, imageUrl)
+                    },
+                    enabled = imageUrl.isNotBlank(),
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = ThemeConstants.ChocolateSecondary
+                    )
+                ) {
+                    Text("Publicar producto", fontWeight = FontWeight.SemiBold)
+                }
             }
         }
 
         item {
-            Text("Gestión de inventario", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+            Text(
+                "Gestión de inventario",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold,
+                color = ThemeConstants.ChocolateSecondary,
+                modifier = Modifier.padding(horizontal = 12.dp)
+            )
         }
 
         items(products) { product ->
@@ -199,65 +295,175 @@ fun SellerModuleScreen(
             ElevatedCard(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .padding(horizontal = 12.dp)
                     .shadow(4.dp, RoundedCornerShape(16.dp)),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                colors = CardDefaults.cardColors(containerColor = ThemeConstants.SurfaceLight),
                 elevation = CardDefaults.elevatedCardElevation(defaultElevation = 4.dp),
                 shape = RoundedCornerShape(24.dp),
             ) {
-                Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text(product.product.name, fontWeight = FontWeight.SemiBold)
-                    Text("Stock: ${product.product.stock}")
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Text(if (inStock) "Disponible" else "AGOTADO")
+                Column(
+                    modifier = Modifier.padding(12.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Text(
+                        product.product.name,
+                        fontWeight = FontWeight.SemiBold,
+                        color = ThemeConstants.ChocolateSecondary
+                    )
+                    Text(
+                        "Stock: ${product.product.stock}",
+                        color = ThemeConstants.TextMedium
+                    )
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            if (inStock) "✓ Disponible" else "⚠ AGOTADO",
+                            fontWeight = FontWeight.SemiBold,
+                            color = if (inStock) ThemeConstants.ChocolateSecondary else ThemeConstants.ErrorRed
+                        )
                         Switch(
                             checked = !inStock,
                             onCheckedChange = { isOut -> onToggleOutOfStock(product.product.id, isOut) },
                         )
                     }
-                    Button(onClick = { onToggleAvailability(product.product.id, !product.product.isActive) }) {
-                        Text(if (product.product.isActive) "Ocultar" else "Activar")
+                    Button(
+                        onClick = { onToggleAvailability(product.product.id, !product.product.isActive) },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = if (product.product.isActive) ThemeConstants.ChocolateSecondary else ThemeConstants.PastelAccent,
+                            contentColor = if (product.product.isActive) androidx.compose.ui.graphics.Color.White else ThemeConstants.ChocolateSecondary
+                        )
+                    ) {
+                        Text(if (product.product.isActive) "Ocultar" else "Activar", fontWeight = FontWeight.SemiBold)
                     }
                 }
             }
         }
 
         item {
-            Text("Control de pedidos", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-            orders.forEach { order ->
-                ElevatedCard(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .shadow(4.dp, RoundedCornerShape(16.dp)),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                    elevation = CardDefaults.elevatedCardElevation(defaultElevation = 4.dp),
-                    shape = RoundedCornerShape(24.dp),
-                ) {
-                    Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Text("Pedido #${order.order.id} - ${orderStatusLabel(order.order.status)}")
-                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            FilledTonalButton(
-                                onClick = { onStageUpdate(order.order.id, "in_oven") },
-                                modifier = Modifier.weight(1f),
-                            ) { Text("Horno", maxLines = 1) }
-                            FilledTonalButton(
-                                onClick = { onStageUpdate(order.order.id, "decorating") },
-                                modifier = Modifier.weight(1f),
-                            ) { Text("Decoración", maxLines = 1) }
+            Column(
+                modifier = Modifier.padding(horizontal = 12.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Text(
+                    "Control de pedidos",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    color = ThemeConstants.ChocolateSecondary
+                )
+                if (orders.isEmpty()) {
+                    ElevatedCard(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .shadow(4.dp, RoundedCornerShape(16.dp)),
+                        colors = CardDefaults.cardColors(containerColor = ThemeConstants.SurfaceLight),
+                        elevation = CardDefaults.elevatedCardElevation(defaultElevation = 4.dp),
+                        shape = RoundedCornerShape(24.dp),
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(32.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            Text(
+                                "📭",
+                                fontSize = 52.sp,
+                                modifier = Modifier.padding(bottom = 8.dp)
+                            )
+                            Text(
+                                "Sin pedidos pendientes",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.SemiBold,
+                                color = ThemeConstants.OnCreamPrimary
+                            )
+                            Text(
+                                "Cuando tus clientes realicen pedidos, aparecerán aquí",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = ThemeConstants.TextMedium,
+                                textAlign = TextAlign.Center
+                            )
                         }
-                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            FilledTonalButton(
-                                onClick = { onStageUpdate(order.order.id, "on_the_way") },
-                                modifier = Modifier.weight(1f),
-                            ) { Text("En camino", maxLines = 1) }
-                            Button(
-                                onClick = { onStageUpdate(order.order.id, "delivered") },
-                                modifier = Modifier.weight(1f),
-                            ) { Text("Entregado", maxLines = 1) }
-                        }
-                        Button(onClick = { onOpenOrder(order.order.id) }) { Text("Ver detalle") }
                     }
+                } else {
+                    orders.forEach { order ->
+                        ElevatedCard(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .shadow(4.dp, RoundedCornerShape(16.dp)),
+                            colors = CardDefaults.cardColors(containerColor = ThemeConstants.SurfaceLight),
+                            elevation = CardDefaults.elevatedCardElevation(defaultElevation = 4.dp),
+                            shape = RoundedCornerShape(24.dp),
+                        ) {
+                            Column(
+                                modifier = Modifier.padding(12.dp),
+                                verticalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                Text(
+                                    "Pedido #${order.order.id} - ${orderStatusLabel(order.order.status)}",
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = ThemeConstants.ChocolateSecondary
+                                )
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    FilledTonalButton(
+                                        onClick = { onStageUpdate(order.order.id, "in_oven") },
+                                        modifier = Modifier.weight(1f),
+                                        colors = androidx.compose.material3.FilledTonalButtonDefaults.filledTonalButtonColors(
+                                            containerColor = ThemeConstants.PastelAccent
+                                        )
+                                    ) {
+                                        Text("Horno", maxLines = 1, fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
+                                    }
+                                    FilledTonalButton(
+                                        onClick = { onStageUpdate(order.order.id, "decorating") },
+                                        modifier = Modifier.weight(1f),
+                                        colors = androidx.compose.material3.FilledTonalButtonDefaults.filledTonalButtonColors(
+                                            containerColor = ThemeConstants.PastelAccent
+                                        )
+                                    ) {
+                                        Text("Decoración", maxLines = 1, fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
+                                    }
+                                }
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    FilledTonalButton(
+                                        onClick = { onStageUpdate(order.order.id, "on_the_way") },
+                                        modifier = Modifier.weight(1f),
+                                        colors = androidx.compose.material3.FilledTonalButtonDefaults.filledTonalButtonColors(
+                                            containerColor = ThemeConstants.PastelAccent
+                                        )
+                                    ) {
+                                        Text("En camino", maxLines = 1, fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
+                                    }
+                                    Button(
+                                        onClick = { onStageUpdate(order.order.id, "delivered") },
+                                        modifier = Modifier.weight(1f),
+                                        colors = ButtonDefaults.buttonColors(
+                                            containerColor = ThemeConstants.ChocolateSecondary
+                                        )
+                                    ) {
+                                        Text("Entregado", maxLines = 1, fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
+                                    }
+                                }
+                                Button(
+                                    onClick = { onOpenOrder(order.order.id) },
+                                    modifier = Modifier.fillMaxWidth(),
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = ThemeConstants.ChocolateSecondary
+                                    )
+                                ) {
+                                    Text("Ver detalle", fontWeight = FontWeight.SemiBold)
+                                }
+                                }
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(6.dp))
                 }
-                Spacer(modifier = Modifier.height(6.dp))
+            }
             }
         }
     }

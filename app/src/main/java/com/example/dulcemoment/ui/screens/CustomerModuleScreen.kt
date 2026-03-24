@@ -21,6 +21,7 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Badge
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
@@ -47,10 +48,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.dulcemoment.data.local.OrderWithDetails
 import com.example.dulcemoment.data.local.ProductWithOptions
+import com.example.dulcemoment.ui.theme.ThemeConstants
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -77,17 +81,17 @@ fun CustomerModuleScreen(
     var showCheckoutSheet by rememberSaveable { mutableStateOf(false) }
 
     val fieldColors = OutlinedTextFieldDefaults.colors(
-        focusedTextColor = MaterialTheme.colorScheme.onSurface,
-        unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
-        focusedContainerColor = MaterialTheme.colorScheme.surface,
-        unfocusedContainerColor = MaterialTheme.colorScheme.surface,
-        focusedBorderColor = MaterialTheme.colorScheme.secondary,
-        unfocusedBorderColor = MaterialTheme.colorScheme.outline,
-        cursorColor = MaterialTheme.colorScheme.secondary,
-        focusedLabelColor = MaterialTheme.colorScheme.secondary,
-        unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
-        focusedPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant,
-        unfocusedPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant,
+        focusedTextColor = ThemeConstants.OnCreamPrimary,
+        unfocusedTextColor = ThemeConstants.OnCreamPrimary,
+        focusedContainerColor = ThemeConstants.SurfaceLight,
+        unfocusedContainerColor = ThemeConstants.SurfaceLighter,
+        focusedBorderColor = ThemeConstants.ChocolateSecondary,
+        unfocusedBorderColor = ThemeConstants.BorderLight,
+        cursorColor = ThemeConstants.ChocolateSecondary,
+        focusedLabelColor = ThemeConstants.ChocolateSecondary,
+        unfocusedLabelColor = ThemeConstants.TextMedium,
+        focusedPlaceholderColor = ThemeConstants.TextMedium,
+        unfocusedPlaceholderColor = ThemeConstants.TextMedium,
     )
 
     val selectedProduct = products.firstOrNull { it.product.id == selectedProductId }
@@ -128,15 +132,51 @@ fun CustomerModuleScreen(
     }
 
     LazyColumn(
-        modifier = Modifier.padding(bottom = 12.dp),
+        modifier = Modifier
+            .padding(bottom = 12.dp)
+            .background(ThemeConstants.CreamPrimary),
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
         item {
-            Text("Catálogo", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Button(onClick = onLogout) { Text("Cerrar sesión") }
-                Button(onClick = onLogoutAll) { Text("Cerrar en todos") }
-                Button(onClick = onRefresh) { Text("Actualizar") }
+            Column(
+                modifier = Modifier.padding(12.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                Text(
+                    "Catálogo",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = ThemeConstants.ChocolateSecondary
+                )
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Button(
+                        onClick = onLogout,
+                        modifier = Modifier.weight(1f),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = ThemeConstants.ChocolateSecondary
+                        )
+                    ) {
+                        Text("Cerrar sesión", fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
+                    }
+                    Button(
+                        onClick = onLogoutAll,
+                        modifier = Modifier.weight(1f),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = ThemeConstants.ChocolateSecondary
+                        )
+                    ) {
+                        Text("Cerrar en todos", fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
+                    }
+                    Button(
+                        onClick = onRefresh,
+                        modifier = Modifier.weight(1f),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = ThemeConstants.ChocolateSecondary
+                        )
+                    ) {
+                        Text("Actualizar", fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
+                    }
+                }
             }
         }
 
@@ -162,98 +202,210 @@ fun CustomerModuleScreen(
         }
 
         item {
-            Text("El Atelier", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-            AtelierSelector(
-                label = "Forma",
-                values = listOf("redondo", "cuadrado"),
-                selected = selectedShape,
-                onSelected = { selectedShape = it },
-            )
-            AtelierSelector(
-                label = "Sabor",
-                values = listOf("chocolate", "vainilla", "fresa"),
-                selected = selectedFlavor,
-                onSelected = { selectedFlavor = it },
-            )
-            AtelierSelector(
-                label = "Color",
-                values = listOf("rosa", "blanco", "azul"),
-                selected = selectedColor,
-                onSelected = { selectedColor = it },
-            )
-            OutlinedTextField(
-                value = ingredients,
-                onValueChange = { ingredients = it },
-                label = { Text("Ingredientes extra") },
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(16.dp),
-                colors = fieldColors,
-            )
-            OutlinedTextField(
-                value = address,
-                onValueChange = { address = it },
-                label = { Text("Dirección") },
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(16.dp),
-                colors = fieldColors,
-            )
-            OutlinedTextField(
-                value = notes,
-                onValueChange = { notes = it },
-                label = { Text("Notas") },
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(16.dp),
-                colors = fieldColors,
-            )
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                Button(onClick = { if (quantity > 1) quantity-- }) { Text("-") }
-                Text("Cantidad: $quantity")
-                Button(onClick = { quantity++ }) { Text("+") }
-            }
-            Text("Precio dinámico: ${"%.2f".format(dynamicPrice)}")
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Button(
-                    onClick = {
-                        if (selectedProduct != null) {
-                            onCreateOrder(
-                                selectedProduct.product.id,
-                                quantity,
-                                ingredients,
-                                "mediano",
-                                selectedShape,
-                                selectedFlavor,
-                                selectedColor,
-                                address,
-                                notes,
-                            )
-                        }
-                    },
-                    enabled = selectedProduct != null && (stockState[selectedProduct.product.id] ?: true),
+            Column(
+                modifier = Modifier.padding(horizontal = 12.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Text(
+                    "El Atelier",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = ThemeConstants.ChocolateSecondary
+                )
+                AtelierSelector(
+                    label = "Forma",
+                    values = listOf("redondo", "cuadrado"),
+                    selected = selectedShape,
+                    onSelected = { selectedShape = it },
+                )
+                AtelierSelector(
+                    label = "Sabor",
+                    values = listOf("chocolate", "vainilla", "fresa"),
+                    selected = selectedFlavor,
+                    onSelected = { selectedFlavor = it },
+                )
+                AtelierSelector(
+                    label = "Color",
+                    values = listOf("rosa", "blanco", "azul"),
+                    selected = selectedColor,
+                    onSelected = { selectedColor = it },
+                )
+                OutlinedTextField(
+                    value = ingredients,
+                    onValueChange = { ingredients = it },
+                    label = { Text("Ingredientes extra") },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = fieldColors,
+                )
+                OutlinedTextField(
+                    value = address,
+                    onValueChange = { address = it },
+                    label = { Text("Dirección") },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = fieldColors,
+                )
+                OutlinedTextField(
+                    value = notes,
+                    onValueChange = { notes = it },
+                    label = { Text("Notas") },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = fieldColors,
+                )
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text("Crear pedido")
+                    Button(
+                        onClick = { if (quantity > 1) quantity-- },
+                        modifier = Modifier.size(50.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = ThemeConstants.PastelAccent
+                        )
+                    ) {
+                        Text("-", color = ThemeConstants.ChocolateSecondary, fontWeight = FontWeight.Bold)
+                    }
+                    Text(
+                        "Cantidad: $quantity",
+                        fontWeight = FontWeight.SemiBold,
+                        color = ThemeConstants.ChocolateSecondary,
+                        modifier = Modifier.weight(1f)
+                    )
+                    Button(
+                        onClick = { quantity++ },
+                        modifier = Modifier.size(50.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = ThemeConstants.PastelAccent
+                        )
+                    ) {
+                        Text("+", color = ThemeConstants.ChocolateSecondary, fontWeight = FontWeight.Bold)
+                    }
                 }
-                Button(
-                    onClick = { showCheckoutSheet = true },
-                    enabled = orders.isNotEmpty(),
-                ) {
-                    Text("Checkout")
+                Text(
+                    "💰 Precio: $${"%.2f".format(dynamicPrice)}",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = ThemeConstants.ChocolateSecondary
+                )
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Button(
+                        onClick = {
+                            if (selectedProduct != null) {
+                                onCreateOrder(
+                                    selectedProduct.product.id,
+                                    quantity,
+                                    ingredients,
+                                    "mediano",
+                                    selectedShape,
+                                    selectedFlavor,
+                                    selectedColor,
+                                    address,
+                                    notes,
+                                )
+                            }
+                        },
+                        enabled = selectedProduct != null && (stockState[selectedProduct.product.id] ?: true),
+                        modifier = Modifier.weight(1f),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = ThemeConstants.ChocolateSecondary
+                        )
+                    ) {
+                        Text("Crear pedido", fontWeight = FontWeight.SemiBold)
+                    }
+                    Button(
+                        onClick = { showCheckoutSheet = true },
+                        enabled = orders.isNotEmpty(),
+                        modifier = Modifier.weight(1f),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = ThemeConstants.PastelAccent,
+                            contentColor = ThemeConstants.ChocolateSecondary
+                        )
+                    ) {
+                        Text("Checkout", fontWeight = FontWeight.SemiBold)
+                    }
                 }
             }
         }
 
         item {
-            Text("Mis pedidos", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-            orders.take(4).forEach { order ->
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .shadow(4.dp, RoundedCornerShape(16.dp)),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                ) {
-                    Column(modifier = Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                        Text("Pedido #${order.order.id} - ${orderStatusLabel(order.order.status)}")
-                        OrderStatusStepper(currentStatus = order.order.status)
-                        Button(onClick = { onOpenOrder(order.order.id) }) { Text("Ver detalle") }
+            Column(
+                modifier = Modifier.padding(12.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Text(
+                    "Mis pedidos",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    color = ThemeConstants.ChocolateSecondary
+                )
+                if (orders.isEmpty()) {
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .shadow(4.dp, RoundedCornerShape(16.dp)),
+                        colors = CardDefaults.cardColors(
+                            containerColor = ThemeConstants.SurfaceLight
+                        ),
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(24.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            Text(
+                                "🎂",
+                                fontSize = 48.sp,
+                                modifier = Modifier.padding(bottom = 8.dp)
+                            )
+                            Text(
+                                "Aún no tienes pedidos",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.SemiBold,
+                                color = ThemeConstants.OnCreamPrimary
+                            )
+                            Text(
+                                "Intenta crear un nuevo pedido seleccionando un producto",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = ThemeConstants.TextMedium,
+                                textAlign = TextAlign.Center
+                            )
+                        }
+                    }
+                } else {
+                    orders.take(4).forEach { order ->
+                        Card(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .shadow(4.dp, RoundedCornerShape(16.dp)),
+                            colors = CardDefaults.cardColors(
+                                containerColor = ThemeConstants.SurfaceLight
+                            ),
+                        ) {
+                            Column(
+                                modifier = Modifier.padding(10.dp),
+                                verticalArrangement = Arrangement.spacedBy(6.dp)
+                            ) {
+                                Text(
+                                    "Pedido #${order.order.id} - ${orderStatusLabel(order.order.status)}",
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = ThemeConstants.ChocolateSecondary
+                                )
+                                OrderStatusStepper(currentStatus = order.order.status)
+                                Button(
+                                    onClick = { onOpenOrder(order.order.id) },
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = ThemeConstants.ChocolateSecondary
+                                    )
+                                ) {
+                                    Text("Ver detalle", fontWeight = FontWeight.SemiBold)
+                                }
+                            }
+                        }
                     }
                 }
             }
