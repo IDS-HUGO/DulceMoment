@@ -28,6 +28,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -74,6 +75,20 @@ fun CustomerModuleScreen(
     var address by rememberSaveable { mutableStateOf("Av. Principal 123") }
     var notes by rememberSaveable { mutableStateOf("") }
     var showCheckoutSheet by rememberSaveable { mutableStateOf(false) }
+
+    val fieldColors = OutlinedTextFieldDefaults.colors(
+        focusedTextColor = MaterialTheme.colorScheme.onSurface,
+        unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+        focusedContainerColor = MaterialTheme.colorScheme.surface,
+        unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+        focusedBorderColor = MaterialTheme.colorScheme.secondary,
+        unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+        cursorColor = MaterialTheme.colorScheme.secondary,
+        focusedLabelColor = MaterialTheme.colorScheme.secondary,
+        unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+        focusedPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant,
+        unfocusedPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
 
     val selectedProduct = products.firstOrNull { it.product.id == selectedProductId }
     val dynamicPrice by remember(selectedProduct, quantity, selectedShape, selectedFlavor, selectedColor, ingredients) {
@@ -172,6 +187,7 @@ fun CustomerModuleScreen(
                 label = { Text("Ingredientes extra") },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp),
+                colors = fieldColors,
             )
             OutlinedTextField(
                 value = address,
@@ -179,6 +195,7 @@ fun CustomerModuleScreen(
                 label = { Text("Dirección") },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp),
+                colors = fieldColors,
             )
             OutlinedTextField(
                 value = notes,
@@ -186,6 +203,7 @@ fun CustomerModuleScreen(
                 label = { Text("Notas") },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp),
+                colors = fieldColors,
             )
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
                 Button(onClick = { if (quantity > 1) quantity-- }) { Text("-") }
@@ -233,7 +251,7 @@ fun CustomerModuleScreen(
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                 ) {
                     Column(modifier = Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                        Text("Pedido #${order.order.id} - ${order.order.status}")
+                        Text("Pedido #${order.order.id} - ${orderStatusLabel(order.order.status)}")
                         OrderStatusStepper(currentStatus = order.order.status)
                         Button(onClick = { onOpenOrder(order.order.id) }) { Text("Ver detalle") }
                     }
@@ -370,6 +388,19 @@ private fun CheckoutBottomSheet(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp),
                 singleLine = true,
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                    unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                    focusedContainerColor = MaterialTheme.colorScheme.surface,
+                    unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                    focusedBorderColor = MaterialTheme.colorScheme.secondary,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                    cursorColor = MaterialTheme.colorScheme.secondary,
+                    focusedLabelColor = MaterialTheme.colorScheme.secondary,
+                    unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    focusedPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    unfocusedPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                ),
             )
             OutlinedTextField(
                 value = cvv,
@@ -379,6 +410,19 @@ private fun CheckoutBottomSheet(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp),
                 singleLine = true,
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                    unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                    focusedContainerColor = MaterialTheme.colorScheme.surface,
+                    unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                    focusedBorderColor = MaterialTheme.colorScheme.secondary,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                    cursorColor = MaterialTheme.colorScheme.secondary,
+                    focusedLabelColor = MaterialTheme.colorScheme.secondary,
+                    unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    focusedPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    unfocusedPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                ),
             )
             OutlinedTextField(
                 value = maskedExp,
@@ -388,6 +432,19 @@ private fun CheckoutBottomSheet(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp),
                 singleLine = true,
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                    unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                    focusedContainerColor = MaterialTheme.colorScheme.surface,
+                    unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                    focusedBorderColor = MaterialTheme.colorScheme.secondary,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                    cursorColor = MaterialTheme.colorScheme.secondary,
+                    focusedLabelColor = MaterialTheme.colorScheme.secondary,
+                    unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    focusedPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    unfocusedPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                ),
             )
             Button(
                 onClick = {
@@ -407,12 +464,13 @@ private fun CheckoutBottomSheet(
 
 @Composable
 fun OrderStatusStepper(currentStatus: String) {
-    val stages = listOf("in_oven", "decorating", "on_the_way", "delivered")
+    val stages = listOf("created", "in_oven", "decorating", "on_the_way", "delivered")
     val labels = listOf(
-        "ESTADO_HORNO",
-        "ESTADO_DECORACION",
-        "ESTADO_TRANSITO",
-        "ESTADO_ENTREGADO",
+        "Confirmado",
+        "En horno",
+        "Decorando",
+        "En camino",
+        "Entregado",
     )
     val current = stages.indexOf(currentStatus).coerceAtLeast(0)
 
@@ -428,9 +486,20 @@ fun OrderStatusStepper(currentStatus: String) {
                             RoundedCornerShape(50)
                         )
                 )
-                Text(label)
+                Text(label, color = if (active) MaterialTheme.colorScheme.onBackground else MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
+    }
+}
+
+private fun orderStatusLabel(status: String): String {
+    return when (status) {
+        "created" -> "Confirmado"
+        "in_oven" -> "En horno"
+        "decorating" -> "Decorando"
+        "on_the_way" -> "En camino"
+        "delivered" -> "Entregado"
+        else -> status
     }
 }
 

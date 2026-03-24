@@ -4,6 +4,7 @@ import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -17,8 +18,10 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -30,8 +33,10 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import coil.compose.AsyncImage
 import com.example.dulcemoment.data.local.OrderWithDetails
 import com.example.dulcemoment.data.local.ProductWithOptions
 
@@ -41,7 +46,7 @@ fun SellerModuleScreen(
     stockState: Map<Int, Boolean>,
     orders: List<OrderWithDetails>,
     suggestedImageUrl: String,
-    onUploadImage: (String) -> Unit,
+    onUploadImage: (Uri) -> Unit,
     onAddProduct: (String, String, Double, Int, String) -> Unit,
     onToggleOutOfStock: (Int, Boolean) -> Unit,
     onToggleAvailability: (Int, Boolean) -> Unit,
@@ -56,11 +61,25 @@ fun SellerModuleScreen(
     var basePrice by rememberSaveable { mutableStateOf("350") }
     var stock by rememberSaveable { mutableStateOf("8") }
     var imageUrl by rememberSaveable { mutableStateOf("") }
-    var sourceUrl by rememberSaveable { mutableStateOf("") }
+    var selectedImageUri by rememberSaveable { mutableStateOf<String?>(null) }
+
+    val fieldColors = OutlinedTextFieldDefaults.colors(
+        focusedTextColor = MaterialTheme.colorScheme.onSurface,
+        unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+        focusedContainerColor = MaterialTheme.colorScheme.surface,
+        unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+        focusedBorderColor = MaterialTheme.colorScheme.secondary,
+        unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+        cursorColor = MaterialTheme.colorScheme.secondary,
+        focusedLabelColor = MaterialTheme.colorScheme.secondary,
+        unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+        focusedPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant,
+        unfocusedPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
 
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
         if (uri != null) {
-            imageUrl = uri.toString()
+            selectedImageUri = uri.toString()
         }
     }
 
@@ -73,10 +92,13 @@ fun SellerModuleScreen(
     LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         item {
             Text("Panel administrativo", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Button(onClick = onLogout) { Text("Cerrar sesión") }
-                Button(onClick = onLogoutAll) { Text("Cerrar en todos") }
-                Button(onClick = onRefresh) { Text("Actualizar") }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                FilledTonalButton(onClick = onLogout, modifier = Modifier.weight(1f)) { Text("Cerrar sesión", maxLines = 1) }
+                FilledTonalButton(onClick = onLogoutAll, modifier = Modifier.weight(1f)) { Text("Cerrar en todos", maxLines = 1) }
+                Button(onClick = onRefresh, modifier = Modifier.weight(1f)) { Text("Actualizar", maxLines = 1) }
             }
         }
 
@@ -88,7 +110,7 @@ fun SellerModuleScreen(
                 label = { Text("Nombre") },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp),
-                textStyle = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurface),
+                colors = fieldColors,
             )
             OutlinedTextField(
                 value = description,
@@ -96,7 +118,7 @@ fun SellerModuleScreen(
                 label = { Text("Descripción") },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp),
-                textStyle = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurface),
+                colors = fieldColors,
             )
             OutlinedTextField(
                 value = basePrice,
@@ -104,7 +126,7 @@ fun SellerModuleScreen(
                 label = { Text("Precio base") },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp),
-                textStyle = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurface),
+                colors = fieldColors,
             )
             OutlinedTextField(
                 value = stock,
@@ -112,35 +134,57 @@ fun SellerModuleScreen(
                 label = { Text("Stock") },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp),
-                textStyle = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurface),
+                colors = fieldColors,
             )
-            OutlinedTextField(
-                value = sourceUrl,
-                onValueChange = { sourceUrl = it },
-                label = { Text("URL para Cloudinary") },
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(16.dp),
-                textStyle = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurface),
+            Text(
+                text = "Imagen del producto",
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.SemiBold,
             )
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Button(onClick = { picker.launch("image/*") }) { Text("Picker galería") }
-                Button(onClick = { if (sourceUrl.isNotBlank()) onUploadImage(sourceUrl) }) { Text("Subir URL") }
+            Box(modifier = Modifier.fillMaxWidth().height(140.dp)) {
+                val uriString = selectedImageUri
+                if (uriString != null) {
+                    AsyncImage(
+                        model = Uri.parse(uriString),
+                        contentDescription = "Imagen seleccionada",
+                        modifier = Modifier.fillMaxWidth().height(140.dp),
+                        contentScale = ContentScale.Crop,
+                    )
+                } else {
+                    Card(
+                        modifier = Modifier.fillMaxWidth().height(140.dp),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                    ) {
+                        Box(modifier = Modifier.fillMaxWidth().height(140.dp), contentAlignment = androidx.compose.ui.Alignment.Center) {
+                            Text("Sin imagen seleccionada", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                    }
+                }
             }
-            OutlinedTextField(
-                value = imageUrl,
-                onValueChange = { imageUrl = it },
-                label = { Text("Imagen seleccionada") },
+            Row(
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(16.dp),
-                textStyle = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurface),
-            )
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                Button(onClick = { picker.launch("image/*") }, modifier = Modifier.weight(1f)) {
+                    Text("Seleccionar imagen", maxLines = 1)
+                }
+                FilledTonalButton(onClick = { selectedImageUri?.let { onUploadImage(Uri.parse(it)) } }, modifier = Modifier.weight(1f), enabled = selectedImageUri != null) {
+                    Text("Subir", maxLines = 1)
+                }
+            }
+            if (imageUrl.isNotBlank()) {
+                Text("✓ Imagen lista para publicar", color = MaterialTheme.colorScheme.secondary, fontWeight = FontWeight.SemiBold)
+            } else {
+                Text("Selecciona una imagen y súbela", color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
             Spacer(modifier = Modifier.height(8.dp))
             Button(
                 onClick = {
                     val price = basePrice.toDoubleOrNull() ?: return@Button
                     val units = stock.toIntOrNull() ?: return@Button
                     onAddProduct(name, description, price, units, imageUrl)
-                }
+                },
+                enabled = imageUrl.isNotBlank(),
             ) {
                 Text("Publicar producto")
             }
@@ -189,14 +233,26 @@ fun SellerModuleScreen(
                     shape = RoundedCornerShape(24.dp),
                 ) {
                     Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Text("Pedido #${order.order.id} - ${order.order.status}")
-                        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                            Button(onClick = { onStageUpdate(order.order.id, "in_oven") }) { Text("ESTADO_HORNO") }
-                            Button(onClick = { onStageUpdate(order.order.id, "decorating") }) { Text("ESTADO_DECORACION") }
+                        Text("Pedido #${order.order.id} - ${orderStatusLabel(order.order.status)}")
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            FilledTonalButton(
+                                onClick = { onStageUpdate(order.order.id, "in_oven") },
+                                modifier = Modifier.weight(1f),
+                            ) { Text("Horno", maxLines = 1) }
+                            FilledTonalButton(
+                                onClick = { onStageUpdate(order.order.id, "decorating") },
+                                modifier = Modifier.weight(1f),
+                            ) { Text("Decoración", maxLines = 1) }
                         }
-                        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                            Button(onClick = { onStageUpdate(order.order.id, "on_the_way") }) { Text("ESTADO_TRANSITO") }
-                            Button(onClick = { onStageUpdate(order.order.id, "delivered") }) { Text("ESTADO_ENTREGADO") }
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            FilledTonalButton(
+                                onClick = { onStageUpdate(order.order.id, "on_the_way") },
+                                modifier = Modifier.weight(1f),
+                            ) { Text("En camino", maxLines = 1) }
+                            Button(
+                                onClick = { onStageUpdate(order.order.id, "delivered") },
+                                modifier = Modifier.weight(1f),
+                            ) { Text("Entregado", maxLines = 1) }
                         }
                         Button(onClick = { onOpenOrder(order.order.id) }) { Text("Ver detalle") }
                     }
@@ -204,5 +260,16 @@ fun SellerModuleScreen(
                 Spacer(modifier = Modifier.height(6.dp))
             }
         }
+    }
+}
+
+private fun orderStatusLabel(status: String): String {
+    return when (status) {
+        "created" -> "Confirmado"
+        "in_oven" -> "En horno"
+        "decorating" -> "Decorando"
+        "on_the_way" -> "En camino"
+        "delivered" -> "Entregado"
+        else -> status
     }
 }

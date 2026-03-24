@@ -1,5 +1,6 @@
 package com.example.dulcemoment.ui
 
+import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.dulcemoment.data.local.OrderWithDetails
@@ -262,6 +263,17 @@ class DulceViewModel @Inject constructor(
     fun uploadProductImage(sourceUrl: String) {
         launchWithState {
             repository.uploadImageToCloudinary(sourceUrl)
+                .onSuccess { imageUrl ->
+                    _uiState.update { state -> state.copy(suggestedImageUrl = imageUrl) }
+                    emitMessage("Imagen subida a Cloudinary")
+                }
+                .onFailure { emitError(it.message ?: "No se pudo subir imagen") }
+        }
+    }
+
+    fun uploadProductImage(uri: Uri) {
+        launchWithState {
+            repository.uploadImageFileToCloudinary(uri)
                 .onSuccess { imageUrl ->
                     _uiState.update { state -> state.copy(suggestedImageUrl = imageUrl) }
                     emitMessage("Imagen subida a Cloudinary")

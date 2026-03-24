@@ -1,9 +1,12 @@
 package com.example.dulcemoment.data.network
 
+import okhttp3.MultipartBody
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.Header
+import retrofit2.http.Multipart
 import retrofit2.http.PATCH
+import retrofit2.http.Part
 import retrofit2.http.POST
 import retrofit2.http.Path
 import retrofit2.http.Query
@@ -31,6 +34,13 @@ interface ApiService {
     suspend fun uploadImageToCloudinary(
         @Header("Authorization") authHeader: String,
         @Body body: CloudinaryUploadRequest,
+    ): CloudinaryUploadResponse
+
+    @Multipart
+    @POST("api/v1/media/cloudinary/upload-file")
+    suspend fun uploadImageFileToCloudinary(
+        @Header("Authorization") authHeader: String,
+        @Part file: MultipartBody.Part,
     ): CloudinaryUploadResponse
 
     @GET("api/v1/auth/me")

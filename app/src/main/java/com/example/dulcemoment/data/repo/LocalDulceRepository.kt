@@ -2,6 +2,8 @@
 package com.example.dulcemoment.data.repo
 
 import android.content.Context
+import android.net.Uri
+import android.provider.OpenableColumns
 import com.example.dulcemoment.data.local.OrderEntity
 import com.example.dulcemoment.data.local.OrderItemEntity
 import com.example.dulcemoment.data.local.OrderWithDetails
@@ -32,11 +34,14 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.toRequestBody
 import retrofit2.HttpException
 
 @Singleton
 class LocalDulceRepository @Inject constructor(
-    @ApplicationContext context: Context,
+    @ApplicationContext private val context: Context,
     private val apiService: ApiService = RetrofitClient.api,
 ) : CakeRepository {
     private val sessionStore = SessionStore(context.applicationContext)
@@ -180,6 +185,34 @@ class LocalDulceRepository @Inject constructor(
         return runCatching {
             apiCallWithRefresh { token ->
                 apiService.uploadImageToCloudinary(token, CloudinaryUploadRequest(source_url = sourceUrl.trim())).image_url
+            }
+        }
+    }
+
+    override suspend fun uploadImageFileToCloudinary(uri: Uri): Result<String> {
+        return runCatching {
+            val contentResolver = context.contentResolver
+            val mimeType = contentResolver.getType(uri) ?: "image/*"
+
+            val fileName = runCatching {
+                contentResolver.query(uri, arrayOf(OpenableColumns.DISPLAY_NAME), null, null, null)?.use { cursor ->
+                    val nameIndex = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+                    if (nameIndex >= 0 && cursor.moveToFirst()) cursor.getString(nameIndex) else null
+                }
+            }.getOrNull() ?: "upload_${System.currentTimeMillis()}"
+
+            val bytes = contentResolver.openInputStream(uri)?.use { it.readBytes() }
+                ?: throw IllegalArgumentException("No se pudo leer la imagen seleccionada")
+
+            val requestBody = bytes.toRequestBody(mimeType.toMediaTypeOrNull())
+            val part = MultipartBody.Part.createFormData(
+                name = "file",
+                filename = fileName,
+                body = requestBody,
+            )
+
+            apiCallWithRefresh { token ->
+                apiService.uploadImageFileToCloudinary(token, part).image_url
             }
         }
     }

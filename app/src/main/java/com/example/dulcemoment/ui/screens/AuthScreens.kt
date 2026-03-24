@@ -294,8 +294,12 @@ private fun LoginContent(
                 unfocusedBorderColor = Color(0xFFE0D5CF),
                 focusedBorderColor = Color(0xFF3E2723),
                 cursorColor = Color(0xFF3E2723),
+                focusedTextColor = Color(0xFF3E2723),
+                unfocusedTextColor = Color(0xFF3E2723),
                 focusedLabelColor = Color(0xFF3E2723),
-                unfocusedLabelColor = Color(0xFF8D6E63)
+                unfocusedLabelColor = Color(0xFF8D6E63),
+                focusedPlaceholderColor = Color(0xFF8D6E63),
+                unfocusedPlaceholderColor = Color(0xFF8D6E63)
             ),
             singleLine = true,
             textStyle = MaterialTheme.typography.bodyMedium
@@ -319,8 +323,12 @@ private fun LoginContent(
                 unfocusedBorderColor = Color(0xFFE0D5CF),
                 focusedBorderColor = Color(0xFF3E2723),
                 cursorColor = Color(0xFF3E2723),
+                focusedTextColor = Color(0xFF3E2723),
+                unfocusedTextColor = Color(0xFF3E2723),
                 focusedLabelColor = Color(0xFF3E2723),
-                unfocusedLabelColor = Color(0xFF8D6E63)
+                unfocusedLabelColor = Color(0xFF8D6E63),
+                focusedPlaceholderColor = Color(0xFF8D6E63),
+                unfocusedPlaceholderColor = Color(0xFF8D6E63)
             ),
             singleLine = true,
             textStyle = MaterialTheme.typography.bodyMedium
@@ -479,8 +487,12 @@ private fun RegisterContent(
                 unfocusedBorderColor = Color(0xFFE0D5CF),
                 focusedBorderColor = Color(0xFF3E2723),
                 cursorColor = Color(0xFF3E2723),
+                focusedTextColor = Color(0xFF3E2723),
+                unfocusedTextColor = Color(0xFF3E2723),
                 focusedLabelColor = Color(0xFF3E2723),
-                unfocusedLabelColor = Color(0xFF8D6E63)
+                unfocusedLabelColor = Color(0xFF8D6E63),
+                focusedPlaceholderColor = Color(0xFF8D6E63),
+                unfocusedPlaceholderColor = Color(0xFF8D6E63)
             ),
             singleLine = true,
             textStyle = MaterialTheme.typography.bodyMedium
@@ -504,8 +516,12 @@ private fun RegisterContent(
                 unfocusedBorderColor = Color(0xFFE0D5CF),
                 focusedBorderColor = Color(0xFF3E2723),
                 cursorColor = Color(0xFF3E2723),
+                focusedTextColor = Color(0xFF3E2723),
+                unfocusedTextColor = Color(0xFF3E2723),
                 focusedLabelColor = Color(0xFF3E2723),
-                unfocusedLabelColor = Color(0xFF8D6E63)
+                unfocusedLabelColor = Color(0xFF8D6E63),
+                focusedPlaceholderColor = Color(0xFF8D6E63),
+                unfocusedPlaceholderColor = Color(0xFF8D6E63)
             ),
             singleLine = true,
             textStyle = MaterialTheme.typography.bodyMedium
@@ -529,8 +545,12 @@ private fun RegisterContent(
                 unfocusedBorderColor = Color(0xFFE0D5CF),
                 focusedBorderColor = Color(0xFF3E2723),
                 cursorColor = Color(0xFF3E2723),
+                focusedTextColor = Color(0xFF3E2723),
+                unfocusedTextColor = Color(0xFF3E2723),
                 focusedLabelColor = Color(0xFF3E2723),
-                unfocusedLabelColor = Color(0xFF8D6E63)
+                unfocusedLabelColor = Color(0xFF8D6E63),
+                focusedPlaceholderColor = Color(0xFF8D6E63),
+                unfocusedPlaceholderColor = Color(0xFF8D6E63)
             ),
             singleLine = true,
             textStyle = MaterialTheme.typography.bodyMedium

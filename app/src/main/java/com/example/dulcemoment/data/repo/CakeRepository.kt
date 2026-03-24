@@ -24,6 +24,7 @@ interface CakeRepository {
     suspend fun addProduct(name: String, description: String, price: Double, stock: Int, imageUrl: String): Result<Unit>
     suspend fun refreshDashboard(): Result<Unit>
     suspend fun uploadImageToCloudinary(sourceUrl: String): Result<String>
+    suspend fun uploadImageFileToCloudinary(uri: android.net.Uri): Result<String>
     suspend fun setOutOfStock(productId: Int): Result<Unit>
     suspend fun restockProduct(productId: Int, unitsToAdd: Int): Result<Unit>
     suspend fun toggleProductActive(productId: Int, isActive: Boolean): Result<Unit>
