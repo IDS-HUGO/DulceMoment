@@ -4,7 +4,7 @@ Este repositorio contiene la app Android (cliente + tienda) conectada a una API 
 
 ## API separada
 - Ubicación: `D:\UNIVERSIDAD\DulceMomentAPI\backend-fastapi`
-- Base URL usada por la app (emulador Android): `http://10.0.2.2:8002/`
+- Base URL usada por la app (emulador Android): `http://10.0.2.2:8000/`
 
 ## Funcionalidades implementadas
 - Login y Register con roles `customer` y `store`.
@@ -34,7 +34,7 @@ Este repositorio contiene la app Android (cliente + tienda) conectada a una API 
 - Tienda: `tienda@dulce.com` / `123456`
 
 ## Ejecución
-1. Levanta la API en el proyecto separado (puerto `8002`).
+1. Levanta la API en el proyecto separado (puerto `8000`).
 2. En esta raíz, compila/ejecuta Android:
 	 - `./gradlew :app:assembleDebug`
 3. Abre en Android Studio y corre en emulador/dispositivo.
@@ -45,7 +45,7 @@ Este repositorio contiene la app Android (cliente + tienda) conectada a una API 
 	- `./gradlew :app:assembleDebug -PAPI_BASE_URL=https://tu-api.com/`
 	- `./gradlew :app:assembleRelease -PAPI_BASE_URL=https://tu-api.com/`
 - Si no pasas propiedad:
-	- `debug` usa `http://10.0.2.2:8002/`
+	- `debug` usa `http://10.0.2.2:8000/`
 	- `release` usa `https://tu-api-desplegada.com/` (placeholder)
 
 ## Configuración de credenciales (producción)
