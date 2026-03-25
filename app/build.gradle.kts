@@ -19,6 +19,12 @@ fun localOrProjectProperty(name: String, default: String = ""): String {
     return projectValue ?: localProps.getProperty(name, default)
 }
 
+fun normalizedBaseUrl(raw: String): String {
+    val trimmed = raw.trim()
+    if (trimmed.isBlank()) return trimmed
+    return if (trimmed.endsWith("/")) trimmed else "$trimmed/"
+}
+
 android {
     namespace = "com.example.dulcemoment"
     compileSdk {
@@ -39,7 +45,7 @@ android {
 
     buildTypes {
         debug {
-            val apiBaseUrl = localOrProjectProperty("API_BASE_URL", "https://apidulcemoment.ferluna.online/")
+            val apiBaseUrl = normalizedBaseUrl(localOrProjectProperty("API_BASE_URL", "https://apidulcemoment.ferluna.online/"))
             val paymentProvider = localOrProjectProperty("PAYMENT_PROVIDER", "mercadopago")
             val stripePublishableKey = localOrProjectProperty("STRIPE_PUBLISHABLE_KEY")
             val mercadoPagoPublicKey = localOrProjectProperty("MERCADOPAGO_PUBLIC_KEY")
@@ -50,7 +56,7 @@ android {
         }
         release {
             isMinifyEnabled = false
-            val apiBaseUrl = localOrProjectProperty("API_BASE_URL", "https://apidulcemoment.ferluna.online/")
+            val apiBaseUrl = normalizedBaseUrl(localOrProjectProperty("API_BASE_URL", "https://apidulcemoment.ferluna.online/"))
             val paymentProvider = localOrProjectProperty("PAYMENT_PROVIDER", "mercadopago")
             val stripePublishableKey = localOrProjectProperty("STRIPE_PUBLISHABLE_KEY")
             val mercadoPagoPublicKey = localOrProjectProperty("MERCADOPAGO_PUBLIC_KEY")

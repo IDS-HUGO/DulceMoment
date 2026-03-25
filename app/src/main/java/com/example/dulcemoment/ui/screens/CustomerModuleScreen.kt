@@ -94,6 +94,20 @@ fun CustomerModuleScreen(
         unfocusedPlaceholderColor = ThemeConstants.TextMedium,
     )
 
+    val primaryButtonColors = ButtonDefaults.buttonColors(
+        containerColor = ThemeConstants.ChocolateSecondary,
+        contentColor = Color.White,
+        disabledContainerColor = ThemeConstants.BorderMedium,
+        disabledContentColor = ThemeConstants.OnCreamPrimary.copy(alpha = 0.75f),
+    )
+
+    val accentButtonColors = ButtonDefaults.buttonColors(
+        containerColor = ThemeConstants.PastelAccent,
+        contentColor = ThemeConstants.ChocolateSecondary,
+        disabledContainerColor = ThemeConstants.SurfaceLighter,
+        disabledContentColor = ThemeConstants.TextMedium,
+    )
+
     val selectedProduct = products.firstOrNull { it.product.id == selectedProductId }
     val dynamicPrice by remember(selectedProduct, quantity, selectedShape, selectedFlavor, selectedColor, ingredients) {
         derivedStateOf {
@@ -152,18 +166,14 @@ fun CustomerModuleScreen(
                     Button(
                         onClick = onLogout,
                         modifier = Modifier.weight(1f),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = ThemeConstants.ChocolateSecondary
-                        )
+                        colors = primaryButtonColors
                     ) {
                         Text("Cerrar sesión", fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
                     }
                     Button(
                         onClick = onRefresh,
                         modifier = Modifier.weight(1f),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = ThemeConstants.ChocolateSecondary
-                        )
+                        colors = primaryButtonColors
                     ) {
                         Text("Actualizar", fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
                     }
@@ -256,9 +266,7 @@ fun CustomerModuleScreen(
                     Button(
                         onClick = { if (quantity > 1) quantity-- },
                         modifier = Modifier.size(50.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = ThemeConstants.PastelAccent
-                        )
+                        colors = accentButtonColors
                     ) {
                         Text("-", color = ThemeConstants.ChocolateSecondary, fontWeight = FontWeight.Bold)
                     }
@@ -271,9 +279,7 @@ fun CustomerModuleScreen(
                     Button(
                         onClick = { quantity++ },
                         modifier = Modifier.size(50.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = ThemeConstants.PastelAccent
-                        )
+                        colors = accentButtonColors
                     ) {
                         Text("+", color = ThemeConstants.ChocolateSecondary, fontWeight = FontWeight.Bold)
                     }
@@ -303,9 +309,7 @@ fun CustomerModuleScreen(
                         },
                         enabled = selectedProduct != null && (stockState[selectedProduct.product.id] ?: true),
                         modifier = Modifier.weight(1f),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = ThemeConstants.ChocolateSecondary
-                        )
+                        colors = primaryButtonColors
                     ) {
                         Text("Crear pedido", fontWeight = FontWeight.SemiBold)
                     }
@@ -313,10 +317,7 @@ fun CustomerModuleScreen(
                         onClick = { showCheckoutSheet = true },
                         enabled = orders.isNotEmpty(),
                         modifier = Modifier.weight(1f),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = ThemeConstants.PastelAccent,
-                            contentColor = ThemeConstants.ChocolateSecondary
-                        )
+                        colors = accentButtonColors
                     ) {
                         Text("Checkout", fontWeight = FontWeight.SemiBold)
                     }
@@ -356,17 +357,14 @@ fun CustomerModuleScreen(
                                 Button(
                                     onClick = { onOpenOrder(latestOrder.order.id) },
                                     modifier = Modifier.weight(1f),
-                                    colors = ButtonDefaults.buttonColors(containerColor = ThemeConstants.ChocolateSecondary)
+                                    colors = primaryButtonColors
                                 ) {
                                     Text("Ver detalle", fontWeight = FontWeight.SemiBold)
                                 }
                                 Button(
                                     onClick = { showCheckoutSheet = true },
                                     modifier = Modifier.weight(1f),
-                                    colors = ButtonDefaults.buttonColors(
-                                        containerColor = ThemeConstants.PastelAccent,
-                                        contentColor = ThemeConstants.ChocolateSecondary
-                                    )
+                                    colors = accentButtonColors
                                 ) {
                                     Text("Pagar", fontWeight = FontWeight.SemiBold)
                                 }
@@ -424,9 +422,20 @@ private fun ProductCatalogCard(
         }
 
         Column(modifier = Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            Text(product.product.name, fontWeight = FontWeight.SemiBold)
-            Text("$${"%.2f".format(product.product.basePrice)}")
-            Button(onClick = onSelect, enabled = inStock) { Text("Seleccionar") }
+            Text(product.product.name, fontWeight = FontWeight.SemiBold, color = ThemeConstants.ChocolateSecondary)
+            Text("$${"%.2f".format(product.product.basePrice)}", color = ThemeConstants.OnCreamPrimary)
+            Button(
+                onClick = onSelect,
+                enabled = inStock,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = ThemeConstants.ChocolateSecondary,
+                    contentColor = Color.White,
+                    disabledContainerColor = ThemeConstants.BorderMedium,
+                    disabledContentColor = ThemeConstants.OnCreamPrimary.copy(alpha = 0.75f),
+                ),
+            ) {
+                Text("Seleccionar")
+            }
         }
     }
 }
@@ -439,14 +448,14 @@ private fun AtelierSelector(
     onSelected: (String) -> Unit,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-        Text(label, fontWeight = FontWeight.SemiBold)
+        Text(label, fontWeight = FontWeight.SemiBold, color = ThemeConstants.ChocolateSecondary)
         LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             items(values.size) { index ->
                 val value = values[index]
                 Card(
                     modifier = Modifier.shadow(4.dp, RoundedCornerShape(16.dp)),
                     colors = CardDefaults.cardColors(
-                        containerColor = if (value == selected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface,
+                        containerColor = if (value == selected) ThemeConstants.ChocolateSecondary else ThemeConstants.SurfaceLight,
                     ),
                     onClick = { onSelected(value) },
                 ) {
@@ -458,9 +467,13 @@ private fun AtelierSelector(
                         Box(
                             modifier = Modifier
                                 .size(12.dp)
-                                .background(MaterialTheme.colorScheme.secondary, RoundedCornerShape(50))
+                                .background(ThemeConstants.PastelAccent, RoundedCornerShape(50))
                         )
-                        Text(value.replaceFirstChar { it.uppercaseChar() })
+                        Text(
+                            value.replaceFirstChar { it.uppercaseChar() },
+                            color = if (value == selected) Color.White else ThemeConstants.ChocolateSecondary,
+                            fontWeight = FontWeight.SemiBold,
+                        )
                     }
                 }
             }

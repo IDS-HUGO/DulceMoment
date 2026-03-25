@@ -85,6 +85,20 @@ fun SellerModuleScreen(
         unfocusedPlaceholderColor = ThemeConstants.TextMedium,
     )
 
+    val primaryButtonColors = ButtonDefaults.buttonColors(
+        containerColor = ThemeConstants.ChocolateSecondary,
+        contentColor = androidx.compose.ui.graphics.Color.White,
+        disabledContainerColor = ThemeConstants.BorderMedium,
+        disabledContentColor = ThemeConstants.OnCreamPrimary.copy(alpha = 0.75f),
+    )
+
+    val accentTonalColors = ButtonDefaults.filledTonalButtonColors(
+        containerColor = ThemeConstants.PastelAccent,
+        contentColor = ThemeConstants.ChocolateSecondary,
+        disabledContainerColor = ThemeConstants.SurfaceLighter,
+        disabledContentColor = ThemeConstants.TextMedium,
+    )
+
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
         if (uri != null) {
             selectedImageUri = uri.toString()
@@ -119,18 +133,14 @@ fun SellerModuleScreen(
                     FilledTonalButton(
                         onClick = onLogout,
                         modifier = Modifier.weight(1f),
-                        colors = ButtonDefaults.filledTonalButtonColors(
-                            containerColor = ThemeConstants.PastelAccent
-                        )
+                        colors = accentTonalColors
                     ) {
                         Text("Cerrar sesión", maxLines = 1, fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
                     }
                     Button(
                         onClick = onRefresh,
                         modifier = Modifier.weight(1f),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = ThemeConstants.ChocolateSecondary
-                        )
+                        colors = primaryButtonColors
                     ) {
                         Text("Actualizar", maxLines = 1, fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
                     }
@@ -242,9 +252,7 @@ fun SellerModuleScreen(
                     Button(
                         onClick = { picker.launch("image/*") },
                         modifier = Modifier.weight(1f),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = ThemeConstants.ChocolateSecondary
-                        )
+                        colors = primaryButtonColors
                     ) {
                         Text("Seleccionar imagen", maxLines = 1, fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
                     }
@@ -252,9 +260,7 @@ fun SellerModuleScreen(
                         onClick = { selectedImageUri?.let { onUploadImageFile(Uri.parse(it)) } },
                         modifier = Modifier.weight(1f),
                         enabled = selectedImageUri != null,
-                        colors = ButtonDefaults.filledTonalButtonColors(
-                            containerColor = ThemeConstants.PastelAccent
-                        )
+                        colors = accentTonalColors
                     ) {
                         Text("Subir", maxLines = 1, fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
                     }
@@ -263,10 +269,7 @@ fun SellerModuleScreen(
                     onClick = { onUploadImageUrl(imageSourceUrl.trim()) },
                     enabled = imageSourceUrl.startsWith("http", ignoreCase = true),
                     modifier = Modifier.fillMaxWidth(),
-                    colors = ButtonDefaults.filledTonalButtonColors(
-                        containerColor = ThemeConstants.PastelAccent,
-                        contentColor = ThemeConstants.ChocolateSecondary,
-                    )
+                    colors = accentTonalColors
                 ) {
                     Text("Usar URL directa", fontWeight = FontWeight.SemiBold)
                 }
@@ -290,9 +293,7 @@ fun SellerModuleScreen(
                     },
                     enabled = imageUrl.isNotBlank(),
                     modifier = Modifier.fillMaxWidth(),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = ThemeConstants.ChocolateSecondary
-                    )
+                    colors = primaryButtonColors
                 ) {
                     Text("Publicar producto", fontWeight = FontWeight.SemiBold)
                 }
