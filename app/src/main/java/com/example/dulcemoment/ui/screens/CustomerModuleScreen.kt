@@ -7,6 +7,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -41,9 +43,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.BlendMode
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
@@ -64,7 +68,7 @@ fun CustomerModuleScreen(
     orders: List<OrderWithDetails>,
     alerts: List<String>,
     onCreateOrder: (Int, Int, String, String, String, String, String, String, String) -> Unit,
-    onPay: (Int, String, String) -> Unit,
+    onPay: (Int, String, String, String, String) -> Unit,
     onOpenOrder: (Int) -> Unit,
     onLogout: () -> Unit,
     onLogoutAll: () -> Unit,
@@ -131,12 +135,27 @@ fun CustomerModuleScreen(
         )
     }
 
-    LazyColumn(
+    val screenGradient = Brush.verticalGradient(
+        colors = listOf(
+            ThemeConstants.CreamPrimary,
+            ThemeConstants.PastelAccent.copy(alpha = 0.44f),
+            ThemeConstants.CreamPrimary,
+        )
+    )
+
+    Box(
         modifier = Modifier
-            .padding(bottom = 12.dp)
-            .background(ThemeConstants.CreamPrimary),
-        verticalArrangement = Arrangement.spacedBy(10.dp),
+            .fillMaxSize()
+            .background(screenGradient)
     ) {
+        DecorativeBlurLayer()
+
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(bottom = 12.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
         item {
             Column(
                 modifier = Modifier.padding(12.dp),
@@ -157,15 +176,6 @@ fun CustomerModuleScreen(
                         )
                     ) {
                         Text("Cerrar sesión", fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
-                    }
-                    Button(
-                        onClick = onLogoutAll,
-                        modifier = Modifier.weight(1f),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = ThemeConstants.ChocolateSecondary
-                        )
-                    ) {
-                        Text("Cerrar en todos", fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
                     }
                     Button(
                         onClick = onRefresh,
@@ -237,6 +247,7 @@ fun CustomerModuleScreen(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(16.dp),
                     colors = fieldColors,
+                    textStyle = MaterialTheme.typography.bodyLarge,
                 )
                 OutlinedTextField(
                     value = address,
@@ -245,6 +256,7 @@ fun CustomerModuleScreen(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(16.dp),
                     colors = fieldColors,
+                    textStyle = MaterialTheme.typography.bodyLarge,
                 )
                 OutlinedTextField(
                     value = notes,
@@ -253,6 +265,7 @@ fun CustomerModuleScreen(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(16.dp),
                     colors = fieldColors,
+                    textStyle = MaterialTheme.typography.bodyLarge,
                 )
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -327,82 +340,54 @@ fun CustomerModuleScreen(
                         Text("Checkout", fontWeight = FontWeight.SemiBold)
                     }
                 }
-            }
-        }
 
-        item {
-            Column(
-                modifier = Modifier.padding(12.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                Text(
-                    "Mis pedidos",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold,
-                    color = ThemeConstants.ChocolateSecondary
-                )
-                if (orders.isEmpty()) {
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .shadow(4.dp, RoundedCornerShape(16.dp)),
-                        colors = CardDefaults.cardColors(
-                            containerColor = ThemeConstants.SurfaceLight
-                        ),
+                val latestOrder = orders.firstOrNull()
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .shadow(4.dp, RoundedCornerShape(16.dp)),
+                    colors = CardDefaults.cardColors(containerColor = ThemeConstants.SurfaceLight.copy(alpha = 0.93f)),
+                ) {
+                    Column(
+                        modifier = Modifier.padding(14.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(24.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.spacedBy(12.dp)
-                        ) {
+                        Text(
+                            "Estado de tu pedido",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = ThemeConstants.ChocolateSecondary
+                        )
+                        if (latestOrder == null) {
                             Text(
-                                "🎂",
-                                fontSize = 48.sp,
-                                modifier = Modifier.padding(bottom = 8.dp)
-                            )
-                            Text(
-                                "Aún no tienes pedidos",
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.SemiBold,
-                                color = ThemeConstants.OnCreamPrimary
-                            )
-                            Text(
-                                "Intenta crear un nuevo pedido seleccionando un producto",
-                                style = MaterialTheme.typography.bodySmall,
+                                "Aún no tienes pedidos creados.",
                                 color = ThemeConstants.TextMedium,
-                                textAlign = TextAlign.Center
+                                style = MaterialTheme.typography.bodyMedium
                             )
-                        }
-                    }
-                } else {
-                    orders.take(4).forEach { order ->
-                        Card(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .shadow(4.dp, RoundedCornerShape(16.dp)),
-                            colors = CardDefaults.cardColors(
-                                containerColor = ThemeConstants.SurfaceLight
-                            ),
-                        ) {
-                            Column(
-                                modifier = Modifier.padding(10.dp),
-                                verticalArrangement = Arrangement.spacedBy(6.dp)
-                            ) {
-                                Text(
-                                    "Pedido #${order.order.id} - ${orderStatusLabel(order.order.status)}",
-                                    fontWeight = FontWeight.SemiBold,
-                                    color = ThemeConstants.ChocolateSecondary
-                                )
-                                OrderStatusStepper(currentStatus = order.order.status)
+                        } else {
+                            Text(
+                                "Pedido #${latestOrder.order.id} • ${orderStatusLabel(latestOrder.order.status)}",
+                                color = ThemeConstants.OnCreamPrimary,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                            OrderStatusStepper(currentStatus = latestOrder.order.status)
+                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                                 Button(
-                                    onClick = { onOpenOrder(order.order.id) },
-                                    colors = ButtonDefaults.buttonColors(
-                                        containerColor = ThemeConstants.ChocolateSecondary
-                                    )
+                                    onClick = { onOpenOrder(latestOrder.order.id) },
+                                    modifier = Modifier.weight(1f),
+                                    colors = ButtonDefaults.buttonColors(containerColor = ThemeConstants.ChocolateSecondary)
                                 ) {
                                     Text("Ver detalle", fontWeight = FontWeight.SemiBold)
+                                }
+                                Button(
+                                    onClick = { showCheckoutSheet = true },
+                                    modifier = Modifier.weight(1f),
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = ThemeConstants.PastelAccent,
+                                        contentColor = ThemeConstants.ChocolateSecondary
+                                    )
+                                ) {
+                                    Text("Pagar", fontWeight = FontWeight.SemiBold)
                                 }
                             }
                         }
@@ -410,10 +395,6 @@ fun CustomerModuleScreen(
                 }
             }
         }
-
-        item {
-            Text("Push Alerts", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-            alerts.take(6).forEach { Text("• $it") }
         }
     }
 }
@@ -430,7 +411,11 @@ private fun ProductCatalogCard(
             .fillMaxWidth()
             .shadow(4.dp, RoundedCornerShape(16.dp)),
         colors = CardDefaults.cardColors(
-            containerColor = if (selected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface,
+            containerColor = if (selected) {
+                MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.92f)
+            } else {
+                ThemeConstants.SurfaceLight.copy(alpha = 0.90f)
+            },
         ),
         elevation = CardDefaults.elevatedCardElevation(defaultElevation = 4.dp),
         shape = RoundedCornerShape(24.dp),
@@ -467,6 +452,27 @@ private fun ProductCatalogCard(
             Text("$${"%.2f".format(product.product.basePrice)}")
             Button(onClick = onSelect, enabled = inStock) { Text("Seleccionar") }
         }
+    }
+}
+
+@Composable
+private fun DecorativeBlurLayer() {
+    Box(modifier = Modifier.fillMaxSize()) {
+        Box(
+            modifier = Modifier
+                .offset(x = (-26).dp, y = 8.dp)
+                .size(160.dp)
+                .blur(44.dp)
+                .background(ThemeConstants.SurfaceLight.copy(alpha = 0.65f), RoundedCornerShape(120.dp))
+        )
+        Box(
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .offset(x = 22.dp, y = 18.dp)
+                .size(210.dp)
+                .blur(54.dp)
+                .background(ThemeConstants.PastelAccent.copy(alpha = 0.60f), RoundedCornerShape(120.dp))
+        )
     }
 }
 
@@ -513,15 +519,17 @@ private fun CheckoutBottomSheet(
     sheetState: androidx.compose.material3.SheetState,
     orderId: Int?,
     onDismiss: () -> Unit,
-    onPay: (Int, String, String) -> Unit,
+    onPay: (Int, String, String, String, String) -> Unit,
 ) {
     var cardNumber by rememberSaveable { mutableStateOf("") }
+    var holderName by rememberSaveable { mutableStateOf("") }
     var cvv by rememberSaveable { mutableStateOf("") }
     var expiry by rememberSaveable { mutableStateOf("") }
 
     val maskedCard = remember(cardNumber) { maskCardNumber(cardNumber) }
     val maskedExp = remember(expiry) { maskExpiry(expiry) }
     val cardValid = maskedCard.filter { it.isDigit() }.length == 16
+    val holderValid = holderName.trim().length >= 3
     val cvvValid = cvv.length in 3..4
     val expValid = maskedExp.length == 5
 
@@ -577,6 +585,29 @@ private fun CheckoutBottomSheet(
                 ),
             )
             OutlinedTextField(
+                value = holderName,
+                onValueChange = { holderName = it },
+                label = { Text("Titular") },
+                isError = !holderValid && holderName.isNotBlank(),
+                supportingText = { if (!holderValid && holderName.isNotBlank()) Text("Mínimo 3 caracteres") },
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(16.dp),
+                singleLine = true,
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                    unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                    focusedContainerColor = MaterialTheme.colorScheme.surface,
+                    unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                    focusedBorderColor = MaterialTheme.colorScheme.secondary,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                    cursorColor = MaterialTheme.colorScheme.secondary,
+                    focusedLabelColor = MaterialTheme.colorScheme.secondary,
+                    unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    focusedPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    unfocusedPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                ),
+            )
+            OutlinedTextField(
                 value = maskedExp,
                 onValueChange = { expiry = it.filter(Char::isDigit).take(4) },
                 label = { Text("Exp MM/YY") },
@@ -601,11 +632,11 @@ private fun CheckoutBottomSheet(
             Button(
                 onClick = {
                     if (orderId != null) {
-                        onPay(orderId, maskedCard, "Cliente")
+                        onPay(orderId, maskedCard, holderName.trim(), cvv, maskedExp)
                         onDismiss()
                     }
                 },
-                enabled = orderId != null && cardValid && cvvValid && expValid,
+                enabled = orderId != null && cardValid && holderValid && cvvValid && expValid,
             ) {
                 Text("Pagar")
             }

@@ -233,9 +233,9 @@ class DulceViewModel @Inject constructor(
         }
     }
 
-    fun payOrder(orderId: Int, cardNumber: String, cardName: String) {
+    fun payOrder(orderId: Int, cardNumber: String, cardName: String, securityCode: String, expiry: String) {
         launchWithState {
-            repository.payOrder(orderId, cardNumber, cardName)
+            repository.payOrder(orderId, cardNumber, cardName, securityCode, expiry)
                 .onSuccess { emitMessage(it) }
                 .onFailure { emitError(it.message ?: "Pago rechazado") }
         }
@@ -246,6 +246,14 @@ class DulceViewModel @Inject constructor(
             repository.updateOrderStatus(orderId, status)
                 .onSuccess { emitMessage("Estado actualizado") }
                 .onFailure { emitError(it.message ?: "No se pudo actualizar") }
+        }
+    }
+
+    fun diagnosePayment(orderId: Int) {
+        launchWithState {
+            repository.paymentDiagnostics(orderId)
+                .onSuccess { emitMessage(it) }
+                .onFailure { emitError(it.message ?: "No se pudo consultar el diagnóstico de pago") }
         }
     }
 
@@ -265,9 +273,9 @@ class DulceViewModel @Inject constructor(
             repository.uploadImageToCloudinary(sourceUrl)
                 .onSuccess { imageUrl ->
                     _uiState.update { state -> state.copy(suggestedImageUrl = imageUrl) }
-                    emitMessage("Imagen subida a Cloudinary")
+                    emitMessage("Imagen lista para publicar")
                 }
-                .onFailure { emitError(it.message ?: "No se pudo subir imagen") }
+                .onFailure { emitError(uploadErrorMessage(it)) }
         }
     }
 
@@ -276,10 +284,14 @@ class DulceViewModel @Inject constructor(
             repository.uploadImageFileToCloudinary(uri)
                 .onSuccess { imageUrl ->
                     _uiState.update { state -> state.copy(suggestedImageUrl = imageUrl) }
-                    emitMessage("Imagen subida a Cloudinary")
+                    emitMessage("Imagen lista para publicar")
                 }
-                .onFailure { emitError(it.message ?: "No se pudo subir imagen") }
+                .onFailure { emitError(uploadErrorMessage(it)) }
         }
+    }
+
+    private fun uploadErrorMessage(error: Throwable): String {
+        return normalizeErrorText(error.message.orEmpty(), "No se pudo subir imagen")
     }
 
     fun markOutOfStock(productId: Int) {
@@ -339,19 +351,70 @@ class DulceViewModel @Inject constructor(
     }
 
     private fun emitError(error: String) {
+        val readableError = normalizeErrorText(error, "Ocurrió un problema inesperado")
         val type = when {
-            error.contains("conex", ignoreCase = true) -> UiErrorType.NETWORK
-            error.contains("pago", ignoreCase = true) -> UiErrorType.PAYMENT_REJECTED
-            error.contains("agotado", ignoreCase = true) -> UiErrorType.OUT_OF_STOCK
-            error.contains("server", ignoreCase = true) || error.contains("502") || error.contains("500") -> UiErrorType.SERVER
+            readableError.contains("conex", ignoreCase = true) -> UiErrorType.NETWORK
+            readableError.contains("pago", ignoreCase = true) || readableError.contains("tarjeta", ignoreCase = true) -> UiErrorType.PAYMENT_REJECTED
+            readableError.contains("agotado", ignoreCase = true) -> UiErrorType.OUT_OF_STOCK
+            readableError.contains("servidor", ignoreCase = true) || readableError.contains("pasarela", ignoreCase = true) -> UiErrorType.SERVER
             else -> UiErrorType.UNKNOWN
         }
         _uiState.update {
             it.copy(
-                error = error,
+                error = readableError,
                 message = "",
-                screenState = UiState.Error(message = error, type = type),
+                screenState = UiState.Error(message = readableError, type = type),
             )
+        }
+    }
+
+    private fun normalizeErrorText(raw: String, fallback: String): String {
+        val text = raw.trim()
+        if (text.isBlank()) return fallback
+
+        val lowered = text.lowercase()
+        val paymentMessage = mapMercadoPagoStatusDetail(lowered)
+        if (paymentMessage != null) return paymentMessage
+
+        if (lowered.contains("no address associated") || lowered.contains("failed to connect") || lowered.contains("timeout")) {
+            return "No hay conexión con el servidor. Verifica internet e inténtalo de nuevo."
+        }
+        if (lowered.contains("no autorizado") || lowered.contains("unauthorized") || lowered.contains("401")) {
+            return "Tu sesión expiró. Inicia sesión nuevamente."
+        }
+        if (lowered.contains("403")) {
+            return "No tienes permisos para realizar esta acción."
+        }
+        if (lowered.contains("404")) {
+            return "No se encontró la información solicitada."
+        }
+        if (lowered.contains("500") || lowered.contains("502") || lowered.contains("503") || lowered.contains("504")) {
+            return "El servidor está temporalmente no disponible. Intenta de nuevo en unos minutos."
+        }
+
+        return text
+            .replace(Regex("HTTP\\s*\\d+", RegexOption.IGNORE_CASE), "")
+            .replace(Regex("\\b(4\\d\\d|5\\d\\d)\\b"), "")
+            .replace(":", " ")
+            .replace(Regex("\\s+"), " ")
+            .trim()
+            .ifBlank { fallback }
+    }
+
+    private fun mapMercadoPagoStatusDetail(text: String): String? {
+        return when {
+            text.contains("cc_rejected_bad_filled_card_number") -> "El número de tarjeta es inválido."
+            text.contains("cc_rejected_bad_filled_date") -> "La fecha de vencimiento no es válida."
+            text.contains("cc_rejected_bad_filled_security_code") -> "El código de seguridad (CVV) es inválido."
+            text.contains("cc_rejected_call_for_authorize") -> "Debes autorizar el pago con tu banco."
+            text.contains("cc_rejected_card_disabled") -> "La tarjeta está deshabilitada. Contacta a tu banco."
+            text.contains("cc_rejected_duplicated_payment") -> "Este pago parece duplicado. Revisa tus movimientos."
+            text.contains("cc_rejected_high_risk") -> "Pago rechazado por seguridad. Intenta con otra tarjeta."
+            text.contains("cc_rejected_insufficient_amount") -> "Fondos insuficientes en la tarjeta."
+            text.contains("cc_rejected_max_attempts") -> "Se alcanzó el máximo de intentos. Intenta más tarde."
+            text.contains("cc_rejected_other_reason") -> "El banco rechazó el pago. Prueba con otra tarjeta."
+            text.contains("cc_rejected") -> "El pago fue rechazado. Verifica tus datos e inténtalo nuevamente."
+            else -> null
         }
     }
 

@@ -183,7 +183,8 @@ fun DulceApp(
                     stockState = stockState,
                     orders = uiState.orders,
                     suggestedImageUrl = uiState.suggestedImageUrl,
-                    onUploadImage = viewModel::uploadProductImage,
+                    onUploadImageFile = viewModel::uploadProductImage,
+                    onUploadImageUrl = viewModel::uploadProductImage,
                     onAddProduct = viewModel::addProduct,
                     onToggleOutOfStock = viewModel::setProductOutOfStock,
                     onToggleAvailability = viewModel::toggleProductAvailability,
@@ -205,8 +206,9 @@ fun DulceApp(
                     order = order,
                     isStore = uiState.currentUser?.role == "store",
                     onBack = { navController.popBackStack() },
-                    onPay = { id, card, name -> viewModel.payOrder(id, card, name) },
+                    onPay = { id, card, name, cvv, exp -> viewModel.payOrder(id, card, name, cvv, exp) },
                     onStageUpdate = { id, status -> viewModel.advanceOrder(id, status) },
+                    onDiagnosePayment = viewModel::diagnosePayment,
                 )
             }
                 }
@@ -393,7 +395,6 @@ private fun ClientSection(
             Text("Catálogo", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Button(onClick = onLogout) { Text("Cerrar sesión") }
-                Button(onClick = onLogoutAll) { Text("Cerrar en todos") }
                 Button(onClick = onRefresh) { Text("Actualizar") }
             }
             OutlinedTextField(
@@ -457,39 +458,6 @@ private fun ClientSection(
                 latestOrder?.let { onPay(it.order.id, cardNumber, cardName) }
             }) { Text("Pagar último pedido") }
         }
-
-        item {
-            Text("Mis pedidos", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-            orders.take(5).forEach { order ->
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
-                ) {
-                    Column(modifier = Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                        Text("Pedido #${order.order.id} - ${order.order.status}", fontWeight = FontWeight.SemiBold)
-                        Text("Total: ${order.order.total} • Dirección: ${order.order.deliveryAddress}")
-                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            Button(onClick = { onOpenOrder(order.order.id) }) { Text("Ver detalle") }
-                            Button(onClick = { onPay(order.order.id, cardNumber, cardName) }) { Text("Pagar") }
-                        }
-                    }
-                }
-                Spacer(modifier = Modifier.height(6.dp))
-            }
-
-            Text("Logística del último pedido", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-            latestOrder?.events?.sortedBy { it.id }?.forEach { event ->
-                Text("• ${event.status}: ${event.message}")
-            } ?: Text("Sin pedidos aún")
-            latestOrder?.let {
-                Button(onClick = { onOpenOrder(it.order.id) }) { Text("Ver detalle del pedido") }
-            }
-        }
-
-        item {
-            Text("Alertas push (simuladas)", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-            alerts.take(6).forEach { Text("• $it") }
-        }
     }
 }
 
@@ -527,7 +495,6 @@ private fun StoreSection(
             Text("Panel Tienda", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Button(onClick = onLogout) { Text("Cerrar sesión") }
-                Button(onClick = onLogoutAll) { Text("Cerrar en todos") }
                 Button(onClick = onRefresh) { Text("Actualizar") }
             }
             OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text("Nombre") }, modifier = Modifier.fillMaxWidth())
@@ -610,11 +577,14 @@ private fun OrderDetailScreen(
     order: OrderWithDetails?,
     isStore: Boolean,
     onBack: () -> Unit,
-    onPay: (Int, String, String) -> Unit,
+    onPay: (Int, String, String, String, String) -> Unit,
     onStageUpdate: (Int, String) -> Unit,
+    onDiagnosePayment: (Int) -> Unit,
 ) {
     var cardNumber by remember { mutableStateOf("4242 4242 4242 4242") }
     var cardName by remember { mutableStateOf("Cliente Demo") }
+    var cvv by remember { mutableStateOf("123") }
+    var expiry by remember { mutableStateOf("12/30") }
 
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Button(onClick = onBack) { Text("Volver") }
@@ -659,7 +629,10 @@ private fun OrderDetailScreen(
         } else {
             OutlinedTextField(value = cardNumber, onValueChange = { cardNumber = it }, label = { Text("Número tarjeta") }, modifier = Modifier.fillMaxWidth())
             OutlinedTextField(value = cardName, onValueChange = { cardName = it }, label = { Text("Titular") }, modifier = Modifier.fillMaxWidth())
-            Button(onClick = { onPay(order.order.id, cardNumber, cardName) }) { Text("Pagar pedido") }
+            OutlinedTextField(value = cvv, onValueChange = { cvv = it }, label = { Text("CVV") }, modifier = Modifier.fillMaxWidth())
+            OutlinedTextField(value = expiry, onValueChange = { expiry = it }, label = { Text("Exp MM/YY") }, modifier = Modifier.fillMaxWidth())
+            Button(onClick = { onPay(order.order.id, cardNumber, cardName, cvv, expiry) }) { Text("Pagar pedido") }
+            Button(onClick = { onDiagnosePayment(order.order.id) }) { Text("Diagnóstico de pago") }
         }
     }
 }

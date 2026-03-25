@@ -84,6 +84,13 @@ interface ApiService {
     @POST("api/v1/payments/card")
     suspend fun payCard(
         @Header("Authorization") authHeader: String,
+        @Header("X-Payment-Provider") provider: String,
         @Body body: CardPaymentRequest,
+    ): Map<String, Any>
+
+    @GET("api/v1/payments/{orderId}/diagnostics")
+    suspend fun paymentDiagnostics(
+        @Header("Authorization") authHeader: String,
+        @Path("orderId") orderId: Int,
     ): Map<String, Any>
 }

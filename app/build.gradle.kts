@@ -5,6 +5,18 @@ plugins {
     alias(libs.plugins.hilt.android)
 }
 
+val localProps = java.util.Properties().apply {
+    val file = rootProject.file("local.properties")
+    if (file.exists()) {
+        file.inputStream().use { load(it) }
+    }
+}
+
+fun localOrProjectProperty(name: String, default: String = ""): String {
+    val projectValue = project.findProperty(name) as String?
+    return projectValue ?: localProps.getProperty(name, default)
+}
+
 android {
     namespace = "com.example.dulcemoment"
     compileSdk {
@@ -25,13 +37,25 @@ android {
 
     buildTypes {
         debug {
-            val apiBaseUrl = project.findProperty("API_BASE_URL") as String? ?: "https://apidulcemoment.ferluna.online/"
+            val apiBaseUrl = localOrProjectProperty("API_BASE_URL", "https://apidulcemoment.ferluna.online/")
+            val paymentProvider = localOrProjectProperty("PAYMENT_PROVIDER", "mercadopago")
+            val stripePublishableKey = localOrProjectProperty("STRIPE_PUBLISHABLE_KEY")
+            val mercadoPagoPublicKey = localOrProjectProperty("MERCADOPAGO_PUBLIC_KEY")
             buildConfigField("String", "API_BASE_URL", "\"$apiBaseUrl\"")
+            buildConfigField("String", "PAYMENT_PROVIDER", "\"$paymentProvider\"")
+            buildConfigField("String", "STRIPE_PUBLISHABLE_KEY", "\"$stripePublishableKey\"")
+            buildConfigField("String", "MERCADOPAGO_PUBLIC_KEY", "\"$mercadoPagoPublicKey\"")
         }
         release {
             isMinifyEnabled = false
-            val apiBaseUrl = project.findProperty("API_BASE_URL") as String? ?: "https://apidulcemoment.ferluna.online/"
+            val apiBaseUrl = localOrProjectProperty("API_BASE_URL", "https://apidulcemoment.ferluna.online/")
+            val paymentProvider = localOrProjectProperty("PAYMENT_PROVIDER", "mercadopago")
+            val stripePublishableKey = localOrProjectProperty("STRIPE_PUBLISHABLE_KEY")
+            val mercadoPagoPublicKey = localOrProjectProperty("MERCADOPAGO_PUBLIC_KEY")
             buildConfigField("String", "API_BASE_URL", "\"$apiBaseUrl\"")
+            buildConfigField("String", "PAYMENT_PROVIDER", "\"$paymentProvider\"")
+            buildConfigField("String", "STRIPE_PUBLISHABLE_KEY", "\"$stripePublishableKey\"")
+            buildConfigField("String", "MERCADOPAGO_PUBLIC_KEY", "\"$mercadoPagoPublicKey\"")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -57,6 +81,7 @@ dependencies {
     implementation(libs.androidx.compose.ui.graphics)
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material3)
+    implementation(libs.androidx.compose.material.icons)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.lifecycle.viewmodel.ktx)
     implementation(libs.androidx.lifecycle.runtime.compose)

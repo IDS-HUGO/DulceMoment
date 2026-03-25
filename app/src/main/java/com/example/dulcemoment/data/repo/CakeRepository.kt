@@ -44,6 +44,13 @@ interface CakeRepository {
     ): Result<Int>
 
     suspend fun updateOrderStatus(orderId: Int, status: String): Result<Unit>
-    suspend fun payOrder(orderId: Int, cardNumber: String, cardName: String): Result<String>
+    suspend fun payOrder(
+        orderId: Int,
+        cardNumber: String,
+        cardName: String,
+        securityCode: String,
+        expiry: String,
+    ): Result<String>
+    suspend fun paymentDiagnostics(orderId: Int): Result<String>
     suspend fun currentUserOnce(): UserEntity?
 }

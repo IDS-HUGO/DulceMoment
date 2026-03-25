@@ -48,5 +48,46 @@ Este repositorio contiene la app Android (cliente + tienda) conectada a una API 
 	- `debug` usa `http://10.0.2.2:8002/`
 	- `release` usa `https://tu-api-desplegada.com/` (placeholder)
 
+## Configuración de credenciales (producción)
+
+La app toma credenciales desde propiedades de Gradle (sin hardcode en código):
+
+- `API_BASE_URL`
+- `PAYMENT_PROVIDER` (por defecto: `mercadopago`)
+- `MERCADOPAGO_PUBLIC_KEY`
+- `STRIPE_PUBLISHABLE_KEY`
+
+Puedes pasarlas por línea de comando:
+
+- `./gradlew :app:assembleDebug -PAPI_BASE_URL=https://tu-api.com/ -PPAYMENT_PROVIDER=stripe -PSTRIPE_PUBLISHABLE_KEY=pk_live_xxx`
+- `./gradlew :app:assembleDebug -PAPI_BASE_URL=https://tu-api.com/ -PPAYMENT_PROVIDER=mercadopago -PMERCADOPAGO_PUBLIC_KEY=APP_USR-xxxxxxxx`
+
+O definirlas en `~/.gradle/gradle.properties` (recomendado para no subir secretos):
+
+- `API_BASE_URL=https://tu-api.com/`
+- `PAYMENT_PROVIDER=stripe`
+- `MERCADOPAGO_PUBLIC_KEY=APP_USR-xxxxxxxx`
+- `STRIPE_PUBLISHABLE_KEY=pk_live_xxx`
+
+### ¿Dónde obtener credenciales?
+
+- Mercado Pago (recomendado): Mercado Pago Developers
+	- URL: `https://www.mercadopago.com/developers/panel`
+	- App móvil: `Public Key` (`APP_USR-...` producción, `TEST-...` pruebas)
+	- Backend: `Access Token` (`APP_USR-...` privado) solo en servidor
+
+- Stripe (pagos): Dashboard Stripe → Developers → API keys
+	- Usar `pk_live_...` en app móvil
+	- La `sk_live_...` solo en backend (nunca en app)
+- Cloudinary (media): Dashboard Cloudinary → API Environment Variables
+	- `CLOUDINARY_URL` va en backend
+- API propia: URL pública HTTPS de tu backend desplegado
+
+### Importante de seguridad
+
+- La app móvil solo debe tener clave pública (`APP_USR-...` o `pk_live_...`).
+- El cobro real siempre se confirma en backend con llave secreta de la pasarela.
+- No subas claves a Git; usa `~/.gradle/gradle.properties` o variables de entorno en CI/CD.
+
 ## Nota de seguridad
 - Las operaciones sensibles (crear producto, cambiar estado de pedido, pagos, listar pedidos privados) usan `Authorization: Bearer <JWT>`.

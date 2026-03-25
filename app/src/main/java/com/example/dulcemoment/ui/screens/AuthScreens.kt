@@ -11,6 +11,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -45,6 +46,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
@@ -66,7 +68,6 @@ fun LoginGlassScreen(
     onLogin: (String, String) -> Unit,
     onGoRegister: () -> Unit,
 ) {
-    // GRADIENTE HERMOSO - Paleta profesional
     val gradient = Brush.verticalGradient(
         colors = listOf(
             Color(0xFFFDFBF5),          // Crema claro
@@ -81,6 +82,8 @@ fun LoginGlassScreen(
             .background(gradient),
         contentAlignment = Alignment.Center
     ) {
+        SoftBlurBlobs()
+
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -135,7 +138,7 @@ fun LoginGlassScreen(
                     .shadow(20.dp, shape = RoundedCornerShape(28.dp)),
                 shape = RoundedCornerShape(28.dp),
                 colors = CardDefaults.cardColors(
-                    containerColor = Color.White
+                    containerColor = Color.White.copy(alpha = 0.90f)
                 ),
                 elevation = CardDefaults.cardElevation(defaultElevation = 12.dp)
             ) {
@@ -179,6 +182,8 @@ fun RegisterGlassScreen(
             .background(gradient),
         contentAlignment = Alignment.Center
     ) {
+        SoftBlurBlobs()
+
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -231,7 +236,7 @@ fun RegisterGlassScreen(
                     .shadow(20.dp, shape = RoundedCornerShape(28.dp)),
                 shape = RoundedCornerShape(28.dp),
                 colors = CardDefaults.cardColors(
-                    containerColor = Color.White
+                    containerColor = Color.White.copy(alpha = 0.90f)
                 ),
                 elevation = CardDefaults.cardElevation(defaultElevation = 12.dp)
             ) {
@@ -253,6 +258,32 @@ fun RegisterGlassScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
         }
+    }
+}
+
+@Composable
+private fun SoftBlurBlobs() {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+    ) {
+        Box(
+            modifier = Modifier
+                .offset(x = (-30).dp, y = (-40).dp)
+                .size(180.dp)
+                .blur(46.dp)
+                .clip(RoundedCornerShape(120.dp))
+                .background(Color.White.copy(alpha = 0.42f))
+        )
+        Box(
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .offset(x = 24.dp, y = 32.dp)
+                .size(210.dp)
+                .blur(52.dp)
+                .clip(RoundedCornerShape(120.dp))
+                .background(Color(0xFFF4E0DB).copy(alpha = 0.55f))
+        )
     }
 }
 
@@ -288,58 +319,58 @@ private fun LoginContent(
         OutlinedTextField(
             value = email,
             onValueChange = { email = it },
-            label = { Text("Email", fontSize = 12.sp) },
-            placeholder = { Text("tu@email.com", fontSize = 13.sp) },
+            label = { Text("Email", fontSize = 11.sp) },
+            placeholder = { Text("tu@email.com", fontSize = 14.sp) },
             isError = emailError,
             supportingText = { if (emailError) Text("Email inválido", color = Color(0xFFB3261E), fontSize = 10.sp) },
             modifier = Modifier
                 .fillMaxWidth()
-                .height(56.dp),
+                .height(60.dp),
             shape = RoundedCornerShape(14.dp),
             colors = OutlinedTextFieldDefaults.colors(
-                unfocusedContainerColor = Color(0xFFF0E6E1),
+                unfocusedContainerColor = Color(0xFFFAF7F4),
                 focusedContainerColor = Color.White,
                 unfocusedBorderColor = Color(0xFFE0D5CF),
                 focusedBorderColor = Color(0xFF3E2723),
                 cursorColor = Color(0xFF3E2723),
-                focusedTextColor = Color(0xFF3E2723),
+                focusedTextColor = Color(0xFF1C0D0A),
                 unfocusedTextColor = Color(0xFF3E2723),
                 focusedLabelColor = Color(0xFF3E2723),
                 unfocusedLabelColor = Color(0xFF8D6E63),
-                focusedPlaceholderColor = Color(0xFF8D6E63),
-                unfocusedPlaceholderColor = Color(0xFF8D6E63)
+                focusedPlaceholderColor = Color(0xFFB39B96),
+                unfocusedPlaceholderColor = Color(0xFFB39B96)
             ),
             singleLine = true,
-            textStyle = MaterialTheme.typography.bodyMedium
+            textStyle = MaterialTheme.typography.bodyMedium.copy(fontSize = 15.sp)
         )
 
         // PASSWORD FIELD - CON TOGGLE DE VISIBILIDAD
         OutlinedTextField(
             value = password,
             onValueChange = { password = it },
-            label = { Text("Contraseña", fontSize = 12.sp) },
-            placeholder = { Text("Min. 6 caracteres", fontSize = 13.sp) },
+            label = { Text("Contraseña", fontSize = 11.sp) },
+            placeholder = { Text("Min. 6 caracteres", fontSize = 14.sp) },
             isError = passwordError,
             supportingText = { if (passwordError) Text("Mínimo 6 caracteres", color = Color(0xFFB3261E), fontSize = 10.sp) },
             modifier = Modifier
                 .fillMaxWidth()
-                .height(56.dp),
+                .height(60.dp),
             shape = RoundedCornerShape(14.dp),
             colors = OutlinedTextFieldDefaults.colors(
-                unfocusedContainerColor = Color(0xFFF0E6E1),
+                unfocusedContainerColor = Color(0xFFFAF7F4),
                 focusedContainerColor = Color.White,
                 unfocusedBorderColor = Color(0xFFE0D5CF),
                 focusedBorderColor = Color(0xFF3E2723),
                 cursorColor = Color(0xFF3E2723),
-                focusedTextColor = Color(0xFF3E2723),
+                focusedTextColor = Color(0xFF1C0D0A),
                 unfocusedTextColor = Color(0xFF3E2723),
                 focusedLabelColor = Color(0xFF3E2723),
                 unfocusedLabelColor = Color(0xFF8D6E63),
-                focusedPlaceholderColor = Color(0xFF8D6E63),
-                unfocusedPlaceholderColor = Color(0xFF8D6E63)
+                focusedPlaceholderColor = Color(0xFFB39B96),
+                unfocusedPlaceholderColor = Color(0xFFB39B96)
             ),
             singleLine = true,
-            textStyle = MaterialTheme.typography.bodyMedium,
+            textStyle = MaterialTheme.typography.bodyMedium.copy(fontSize = 15.sp),
             visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
             trailingIcon = {
                 IconButton(onClick = { passwordVisible = !passwordVisible }) {
@@ -494,85 +525,85 @@ private fun RegisterContent(
         OutlinedTextField(
             value = name,
             onValueChange = { name = it },
-            label = { Text("Nombre completo", fontSize = 12.sp) },
-            placeholder = { Text("Ej: María García", fontSize = 13.sp) },
+            label = { Text("Nombre completo", fontSize = 11.sp) },
+            placeholder = { Text("Ej: María García", fontSize = 14.sp) },
             modifier = Modifier
                 .fillMaxWidth()
-                .height(56.dp),
+                .height(60.dp),
             shape = RoundedCornerShape(14.dp),
             colors = OutlinedTextFieldDefaults.colors(
-                unfocusedContainerColor = Color(0xFFF0E6E1),
+                unfocusedContainerColor = Color(0xFFFAF7F4),
                 focusedContainerColor = Color.White,
                 unfocusedBorderColor = Color(0xFFE0D5CF),
                 focusedBorderColor = Color(0xFF3E2723),
                 cursorColor = Color(0xFF3E2723),
-                focusedTextColor = Color(0xFF3E2723),
+                focusedTextColor = Color(0xFF1C0D0A),
                 unfocusedTextColor = Color(0xFF3E2723),
                 focusedLabelColor = Color(0xFF3E2723),
                 unfocusedLabelColor = Color(0xFF8D6E63),
-                focusedPlaceholderColor = Color(0xFF8D6E63),
-                unfocusedPlaceholderColor = Color(0xFF8D6E63)
+                focusedPlaceholderColor = Color(0xFFB39B96),
+                unfocusedPlaceholderColor = Color(0xFFB39B96)
             ),
             singleLine = true,
-            textStyle = MaterialTheme.typography.bodyMedium
+            textStyle = MaterialTheme.typography.bodyMedium.copy(fontSize = 15.sp)
         )
 
         // EMAIL FIELD - DISEÑO MEJORADO
         OutlinedTextField(
             value = email,
             onValueChange = { email = it },
-            label = { Text("Email", fontSize = 12.sp) },
-            placeholder = { Text("tu@email.com", fontSize = 13.sp) },
+            label = { Text("Email", fontSize = 11.sp) },
+            placeholder = { Text("tu@email.com", fontSize = 14.sp) },
             isError = emailError,
             supportingText = { if (emailError) Text("Email inválido", color = Color(0xFFB3261E), fontSize = 10.sp) },
             modifier = Modifier
                 .fillMaxWidth()
-                .height(56.dp),
+                .height(60.dp),
             shape = RoundedCornerShape(14.dp),
             colors = OutlinedTextFieldDefaults.colors(
-                unfocusedContainerColor = Color(0xFFF0E6E1),
+                unfocusedContainerColor = Color(0xFFFAF7F4),
                 focusedContainerColor = Color.White,
                 unfocusedBorderColor = Color(0xFFE0D5CF),
                 focusedBorderColor = Color(0xFF3E2723),
                 cursorColor = Color(0xFF3E2723),
-                focusedTextColor = Color(0xFF3E2723),
+                focusedTextColor = Color(0xFF1C0D0A),
                 unfocusedTextColor = Color(0xFF3E2723),
                 focusedLabelColor = Color(0xFF3E2723),
                 unfocusedLabelColor = Color(0xFF8D6E63),
-                focusedPlaceholderColor = Color(0xFF8D6E63),
-                unfocusedPlaceholderColor = Color(0xFF8D6E63)
+                focusedPlaceholderColor = Color(0xFFB39B96),
+                unfocusedPlaceholderColor = Color(0xFFB39B96)
             ),
             singleLine = true,
-            textStyle = MaterialTheme.typography.bodyMedium
+            textStyle = MaterialTheme.typography.bodyMedium.copy(fontSize = 15.sp)
         )
 
         // PASSWORD FIELD - CON TOGGLE DE VISIBILIDAD
         OutlinedTextField(
             value = password,
             onValueChange = { password = it },
-            label = { Text("Contraseña", fontSize = 12.sp) },
-            placeholder = { Text("Min. 6 caracteres", fontSize = 13.sp) },
+            label = { Text("Contraseña", fontSize = 11.sp) },
+            placeholder = { Text("Min. 6 caracteres", fontSize = 14.sp) },
             isError = passwordError,
             supportingText = { if (passwordError) Text("Mínimo 6 caracteres", color = Color(0xFFB3261E), fontSize = 10.sp) },
             modifier = Modifier
                 .fillMaxWidth()
-                .height(56.dp),
+                .height(60.dp),
             shape = RoundedCornerShape(14.dp),
             colors = OutlinedTextFieldDefaults.colors(
-                unfocusedContainerColor = Color(0xFFF0E6E1),
+                unfocusedContainerColor = Color(0xFFFAF7F4),
                 focusedContainerColor = Color.White,
                 unfocusedBorderColor = Color(0xFFE0D5CF),
                 focusedBorderColor = Color(0xFF3E2723),
                 cursorColor = Color(0xFF3E2723),
-                focusedTextColor = Color(0xFF3E2723),
+                focusedTextColor = Color(0xFF1C0D0A),
                 unfocusedTextColor = Color(0xFF3E2723),
                 focusedLabelColor = Color(0xFF3E2723),
                 unfocusedLabelColor = Color(0xFF8D6E63),
-                focusedPlaceholderColor = Color(0xFF8D6E63),
-                unfocusedPlaceholderColor = Color(0xFF8D6E63)
+                focusedPlaceholderColor = Color(0xFFB39B96),
+                unfocusedPlaceholderColor = Color(0xFFB39B96)
             ),
             singleLine = true,
-            textStyle = MaterialTheme.typography.bodyMedium,
+            textStyle = MaterialTheme.typography.bodyMedium.copy(fontSize = 15.sp),
             visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
             trailingIcon = {
                 IconButton(onClick = { passwordVisible = !passwordVisible }) {

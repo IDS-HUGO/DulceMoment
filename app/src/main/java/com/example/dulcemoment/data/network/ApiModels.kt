@@ -128,4 +128,7 @@ data class CardPaymentRequest(
     val order_id: Int,
     val card_number: String,
     val holder_name: String,
+    val security_code: String,
+    val expiry_month: Int,
+    val expiry_year: Int,
 )
