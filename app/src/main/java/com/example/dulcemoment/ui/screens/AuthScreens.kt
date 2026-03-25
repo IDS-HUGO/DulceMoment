@@ -11,7 +11,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -46,7 +45,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.draw.blur
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
@@ -68,6 +66,7 @@ fun LoginGlassScreen(
     onLogin: (String, String) -> Unit,
     onGoRegister: () -> Unit,
 ) {
+    // GRADIENTE HERMOSO - Paleta profesional
     val gradient = Brush.verticalGradient(
         colors = listOf(
             Color(0xFFFDFBF5),          // Crema claro
@@ -82,8 +81,6 @@ fun LoginGlassScreen(
             .background(gradient),
         contentAlignment = Alignment.Center
     ) {
-        SoftBlurBlobs()
-
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -138,7 +135,7 @@ fun LoginGlassScreen(
                     .shadow(20.dp, shape = RoundedCornerShape(28.dp)),
                 shape = RoundedCornerShape(28.dp),
                 colors = CardDefaults.cardColors(
-                    containerColor = Color.White.copy(alpha = 0.90f)
+                    containerColor = Color.White
                 ),
                 elevation = CardDefaults.cardElevation(defaultElevation = 12.dp)
             ) {
@@ -182,8 +179,6 @@ fun RegisterGlassScreen(
             .background(gradient),
         contentAlignment = Alignment.Center
     ) {
-        SoftBlurBlobs()
-
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -236,7 +231,7 @@ fun RegisterGlassScreen(
                     .shadow(20.dp, shape = RoundedCornerShape(28.dp)),
                 shape = RoundedCornerShape(28.dp),
                 colors = CardDefaults.cardColors(
-                    containerColor = Color.White.copy(alpha = 0.90f)
+                    containerColor = Color.White
                 ),
                 elevation = CardDefaults.cardElevation(defaultElevation = 12.dp)
             ) {
@@ -258,32 +253,6 @@ fun RegisterGlassScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
         }
-    }
-}
-
-@Composable
-private fun SoftBlurBlobs() {
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-    ) {
-        Box(
-            modifier = Modifier
-                .offset(x = (-30).dp, y = (-40).dp)
-                .size(180.dp)
-                .blur(46.dp)
-                .clip(RoundedCornerShape(120.dp))
-                .background(Color.White.copy(alpha = 0.42f))
-        )
-        Box(
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .offset(x = 24.dp, y = 32.dp)
-                .size(210.dp)
-                .blur(52.dp)
-                .clip(RoundedCornerShape(120.dp))
-                .background(Color(0xFFF4E0DB).copy(alpha = 0.55f))
-        )
     }
 }
 

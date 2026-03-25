@@ -7,8 +7,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -37,9 +35,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -101,25 +97,10 @@ fun SellerModuleScreen(
         }
     }
 
-    val screenGradient = Brush.verticalGradient(
-        colors = listOf(
-            ThemeConstants.CreamPrimary,
-            ThemeConstants.PastelAccent.copy(alpha = 0.42f),
-            ThemeConstants.CreamPrimary,
-        )
-    )
-
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(screenGradient)
+    LazyColumn(
+        modifier = Modifier.background(ThemeConstants.CreamPrimary),
+        verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-        SellerBlurLayer()
-
-        LazyColumn(
-            modifier = Modifier.fillMaxSize(),
-            verticalArrangement = Arrangement.spacedBy(10.dp)
-        ) {
         item {
             Column(
                 modifier = Modifier.padding(12.dp),
@@ -238,7 +219,7 @@ fun SellerModuleScreen(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(140.dp),
-                            colors = CardDefaults.cardColors(containerColor = ThemeConstants.SurfaceLight.copy(alpha = 0.93f)),
+                            colors = CardDefaults.cardColors(containerColor = ThemeConstants.SurfaceLight),
                         ) {
                             Box(
                                 modifier = Modifier
@@ -335,7 +316,7 @@ fun SellerModuleScreen(
                     .fillMaxWidth()
                     .padding(horizontal = 12.dp)
                     .shadow(4.dp, RoundedCornerShape(16.dp)),
-                colors = CardDefaults.cardColors(containerColor = ThemeConstants.SurfaceLight.copy(alpha = 0.93f)),
+                colors = CardDefaults.cardColors(containerColor = ThemeConstants.SurfaceLight),
                 elevation = CardDefaults.elevatedCardElevation(defaultElevation = 4.dp),
                 shape = RoundedCornerShape(24.dp),
             ) {
@@ -375,28 +356,6 @@ fun SellerModuleScreen(
                 }
             }
         }
-        }
-    }
-}
-
-@Composable
-private fun SellerBlurLayer() {
-    Box(modifier = Modifier.fillMaxSize()) {
-        Box(
-            modifier = Modifier
-                .offset(x = (-30).dp, y = (-8).dp)
-                .size(170.dp)
-                .blur(46.dp)
-                .background(ThemeConstants.SurfaceLight.copy(alpha = 0.64f), RoundedCornerShape(120.dp))
-        )
-        Box(
-            modifier = Modifier
-                .align(Alignment.BottomStart)
-                .offset(x = (-20).dp, y = 30.dp)
-                .size(200.dp)
-                .blur(52.dp)
-                .background(ThemeConstants.PastelAccent.copy(alpha = 0.58f), RoundedCornerShape(120.dp))
-        )
     }
 }
 

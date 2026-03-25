@@ -7,8 +7,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -43,11 +41,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.draw.blur
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.BlendMode
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
@@ -135,27 +131,12 @@ fun CustomerModuleScreen(
         )
     }
 
-    val screenGradient = Brush.verticalGradient(
-        colors = listOf(
-            ThemeConstants.CreamPrimary,
-            ThemeConstants.PastelAccent.copy(alpha = 0.44f),
-            ThemeConstants.CreamPrimary,
-        )
-    )
-
-    Box(
+    LazyColumn(
         modifier = Modifier
-            .fillMaxSize()
-            .background(screenGradient)
+            .padding(bottom = 12.dp)
+            .background(ThemeConstants.CreamPrimary),
+        verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
-        DecorativeBlurLayer()
-
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(bottom = 12.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp),
-        ) {
         item {
             Column(
                 modifier = Modifier.padding(12.dp),
@@ -346,7 +327,7 @@ fun CustomerModuleScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .shadow(4.dp, RoundedCornerShape(16.dp)),
-                    colors = CardDefaults.cardColors(containerColor = ThemeConstants.SurfaceLight.copy(alpha = 0.93f)),
+                    colors = CardDefaults.cardColors(containerColor = ThemeConstants.SurfaceLight),
                 ) {
                     Column(
                         modifier = Modifier.padding(14.dp),
@@ -395,7 +376,6 @@ fun CustomerModuleScreen(
                 }
             }
         }
-        }
     }
 }
 
@@ -411,11 +391,7 @@ private fun ProductCatalogCard(
             .fillMaxWidth()
             .shadow(4.dp, RoundedCornerShape(16.dp)),
         colors = CardDefaults.cardColors(
-            containerColor = if (selected) {
-                MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.92f)
-            } else {
-                ThemeConstants.SurfaceLight.copy(alpha = 0.90f)
-            },
+            containerColor = if (selected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface,
         ),
         elevation = CardDefaults.elevatedCardElevation(defaultElevation = 4.dp),
         shape = RoundedCornerShape(24.dp),
@@ -452,27 +428,6 @@ private fun ProductCatalogCard(
             Text("$${"%.2f".format(product.product.basePrice)}")
             Button(onClick = onSelect, enabled = inStock) { Text("Seleccionar") }
         }
-    }
-}
-
-@Composable
-private fun DecorativeBlurLayer() {
-    Box(modifier = Modifier.fillMaxSize()) {
-        Box(
-            modifier = Modifier
-                .offset(x = (-26).dp, y = 8.dp)
-                .size(160.dp)
-                .blur(44.dp)
-                .background(ThemeConstants.SurfaceLight.copy(alpha = 0.65f), RoundedCornerShape(120.dp))
-        )
-        Box(
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .offset(x = 22.dp, y = 18.dp)
-                .size(210.dp)
-                .blur(54.dp)
-                .background(ThemeConstants.PastelAccent.copy(alpha = 0.60f), RoundedCornerShape(120.dp))
-        )
     }
 }
 
