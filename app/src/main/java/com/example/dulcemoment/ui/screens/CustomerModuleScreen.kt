@@ -15,9 +15,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Badge
 import androidx.compose.material3.Button
@@ -55,6 +52,9 @@ import coil.compose.AsyncImage
 import com.example.dulcemoment.data.local.OrderWithDetails
 import com.example.dulcemoment.data.local.ProductWithOptions
 import com.example.dulcemoment.ui.theme.ThemeConstants
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -109,6 +109,22 @@ fun CustomerModuleScreen(
     )
 
     val selectedProduct = products.firstOrNull { it.product.id == selectedProductId }
+    val selectedInStock = selectedProduct?.let { product ->
+        stockState[product.product.id] ?: (product.product.stock > 0)
+    } ?: false
+    val canCreateOrder = selectedProduct != null && selectedInStock && address.isNotBlank() && quantity > 0
+
+    LaunchedEffect(products, stockState, selectedProductId) {
+        val currentSelectionExists = products.any { it.product.id == selectedProductId }
+        if (!currentSelectionExists) {
+            selectedProductId = products
+                .firstOrNull { stockState[it.product.id] ?: (it.product.stock > 0) }
+                ?.product
+                ?.id
+                ?: 0
+        }
+    }
+
     val dynamicPrice by remember(selectedProduct, quantity, selectedShape, selectedFlavor, selectedColor, ingredients) {
         derivedStateOf {
             selectedProduct?.let { product ->
@@ -182,22 +198,45 @@ fun CustomerModuleScreen(
         }
 
         item {
-            val gridRows = ((products.size + 1) / 2).coerceAtLeast(1)
-            LazyVerticalGrid(
-                columns = GridCells.Fixed(2),
-                modifier = Modifier.height((gridRows * 220).dp),
-                userScrollEnabled = false,
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                items(products) { product ->
-                    val inStock = stockState[product.product.id] ?: (product.product.stock > 0)
-                    ProductCatalogCard(
-                        product = product,
-                        inStock = inStock,
-                        selected = selectedProductId == product.product.id,
-                        onSelect = { selectedProductId = product.product.id },
+            if (products.isEmpty()) {
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 12.dp),
+                    colors = CardDefaults.cardColors(containerColor = ThemeConstants.SurfaceLight),
+                ) {
+                    Text(
+                        "No hay productos disponibles en este momento.",
+                        modifier = Modifier.padding(14.dp),
+                        color = ThemeConstants.TextMedium,
+                        style = MaterialTheme.typography.bodyMedium,
                     )
+                }
+            } else {
+                Column(
+                    modifier = Modifier.padding(horizontal = 12.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    products.chunked(2).forEach { rowProducts ->
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        ) {
+                            rowProducts.forEach { product ->
+                                val inStock = stockState[product.product.id] ?: (product.product.stock > 0)
+                                ProductCatalogCard(
+                                    modifier = Modifier.weight(1f),
+                                    product = product,
+                                    inStock = inStock,
+                                    selected = selectedProductId == product.product.id,
+                                    onSelect = { selectedProductId = product.product.id },
+                                )
+                            }
+                            if (rowProducts.size == 1) {
+                                Spacer(modifier = Modifier.weight(1f))
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -238,7 +277,7 @@ fun CustomerModuleScreen(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(16.dp),
                     colors = fieldColors,
-                    textStyle = MaterialTheme.typography.bodyLarge,
+                    textStyle = MaterialTheme.typography.bodyLarge.copy(color = ThemeConstants.OnCreamPrimary),
                 )
                 OutlinedTextField(
                     value = address,
@@ -247,7 +286,7 @@ fun CustomerModuleScreen(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(16.dp),
                     colors = fieldColors,
-                    textStyle = MaterialTheme.typography.bodyLarge,
+                    textStyle = MaterialTheme.typography.bodyLarge.copy(color = ThemeConstants.OnCreamPrimary),
                 )
                 OutlinedTextField(
                     value = notes,
@@ -256,7 +295,7 @@ fun CustomerModuleScreen(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(16.dp),
                     colors = fieldColors,
-                    textStyle = MaterialTheme.typography.bodyLarge,
+                    textStyle = MaterialTheme.typography.bodyLarge.copy(color = ThemeConstants.OnCreamPrimary),
                 )
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -293,9 +332,10 @@ fun CustomerModuleScreen(
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     Button(
                         onClick = {
-                            if (selectedProduct != null) {
+                            if (canCreateOrder) {
+                                val product = selectedProduct ?: return@Button
                                 onCreateOrder(
-                                    selectedProduct.product.id,
+                                    product.product.id,
                                     quantity,
                                     ingredients,
                                     "mediano",
@@ -307,7 +347,7 @@ fun CustomerModuleScreen(
                                 )
                             }
                         },
-                        enabled = selectedProduct != null && (stockState[selectedProduct.product.id] ?: true),
+                        enabled = canCreateOrder,
                         modifier = Modifier.weight(1f),
                         colors = primaryButtonColors
                     ) {
@@ -322,6 +362,18 @@ fun CustomerModuleScreen(
                         Text("Checkout", fontWeight = FontWeight.SemiBold)
                     }
                 }
+
+                val orderHint = when {
+                    selectedProduct == null -> "Selecciona un producto para continuar."
+                    !selectedInStock -> "El producto seleccionado no tiene stock disponible."
+                    address.isBlank() -> "Agrega una dirección de entrega para crear el pedido."
+                    else -> "Pedido listo para enviar."
+                }
+                Text(
+                    text = orderHint,
+                    color = if (canCreateOrder) ThemeConstants.ChocolateSecondary else ThemeConstants.TextMedium,
+                    fontWeight = if (canCreateOrder) FontWeight.SemiBold else FontWeight.Normal,
+                )
 
                 val latestOrder = orders.firstOrNull()
                 Card(
@@ -372,20 +424,85 @@ fun CustomerModuleScreen(
                         }
                     }
                 }
+
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .shadow(4.dp, RoundedCornerShape(16.dp)),
+                    colors = CardDefaults.cardColors(containerColor = ThemeConstants.SurfaceLight),
+                ) {
+                    Column(
+                        modifier = Modifier.padding(14.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Text(
+                            "Mis pedidos",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = ThemeConstants.ChocolateSecondary
+                        )
+                        if (orders.isEmpty()) {
+                            Text(
+                                "Aún no has realizado pedidos.",
+                                color = ThemeConstants.TextMedium,
+                            )
+                        } else {
+                            orders
+                                .sortedByDescending { it.order.createdAt }
+                                .forEach { orderDetail ->
+                                    Card(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        colors = CardDefaults.cardColors(containerColor = ThemeConstants.SurfaceLighter),
+                                    ) {
+                                        Column(
+                                            modifier = Modifier.padding(10.dp),
+                                            verticalArrangement = Arrangement.spacedBy(4.dp),
+                                        ) {
+                                            Text(
+                                                "Pedido #${orderDetail.order.id} • ${orderStatusLabel(orderDetail.order.status)}",
+                                                color = ThemeConstants.ChocolateSecondary,
+                                                fontWeight = FontWeight.SemiBold,
+                                            )
+                                            Text(
+                                                "Fecha: ${formatOrderDate(orderDetail.order.createdAt)}",
+                                                color = ThemeConstants.TextMedium,
+                                            )
+                                            Text(
+                                                "Total: $${"%.2f".format(orderDetail.order.total)}",
+                                                color = ThemeConstants.OnCreamPrimary,
+                                            )
+                                            Button(
+                                                onClick = { onOpenOrder(orderDetail.order.id) },
+                                                colors = primaryButtonColors,
+                                            ) {
+                                                Text("Ver detalle", fontWeight = FontWeight.SemiBold)
+                                            }
+                                        }
+                                    }
+                                }
+                        }
+                    }
+                }
             }
         }
     }
 }
 
+private fun formatOrderDate(timeInMillis: Long): String {
+    val formatter = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
+    return formatter.format(Date(timeInMillis))
+}
+
 @Composable
 private fun ProductCatalogCard(
+    modifier: Modifier = Modifier,
     product: ProductWithOptions,
     inStock: Boolean,
     selected: Boolean,
     onSelect: () -> Unit,
 ) {
     ElevatedCard(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .shadow(4.dp, RoundedCornerShape(16.dp)),
         colors = CardDefaults.cardColors(
@@ -516,6 +633,7 @@ private fun CheckoutBottomSheet(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp),
                 singleLine = true,
+                textStyle = MaterialTheme.typography.bodyLarge.copy(color = ThemeConstants.OnCreamPrimary),
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedTextColor = MaterialTheme.colorScheme.onSurface,
                     unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
@@ -538,6 +656,7 @@ private fun CheckoutBottomSheet(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp),
                 singleLine = true,
+                textStyle = MaterialTheme.typography.bodyLarge.copy(color = ThemeConstants.OnCreamPrimary),
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedTextColor = MaterialTheme.colorScheme.onSurface,
                     unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
@@ -561,6 +680,7 @@ private fun CheckoutBottomSheet(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp),
                 singleLine = true,
+                textStyle = MaterialTheme.typography.bodyLarge.copy(color = ThemeConstants.OnCreamPrimary),
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedTextColor = MaterialTheme.colorScheme.onSurface,
                     unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
@@ -583,6 +703,7 @@ private fun CheckoutBottomSheet(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp),
                 singleLine = true,
+                textStyle = MaterialTheme.typography.bodyLarge.copy(color = ThemeConstants.OnCreamPrimary),
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedTextColor = MaterialTheme.colorScheme.onSurface,
                     unfocusedTextColor = MaterialTheme.colorScheme.onSurface,

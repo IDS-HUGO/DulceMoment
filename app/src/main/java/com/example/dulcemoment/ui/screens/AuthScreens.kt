@@ -293,8 +293,7 @@ private fun LoginContent(
             isError = emailError,
             supportingText = { if (emailError) Text("Email inválido", color = Color(0xFFB3261E), fontSize = 10.sp) },
             modifier = Modifier
-                .fillMaxWidth()
-                .height(60.dp),
+                .fillMaxWidth(),
             shape = RoundedCornerShape(14.dp),
             colors = OutlinedTextFieldDefaults.colors(
                 unfocusedContainerColor = Color(0xFFFAF7F4),
@@ -322,8 +321,7 @@ private fun LoginContent(
             isError = passwordError,
             supportingText = { if (passwordError) Text("Mínimo 6 caracteres", color = Color(0xFFB3261E), fontSize = 10.sp) },
             modifier = Modifier
-                .fillMaxWidth()
-                .height(60.dp),
+                .fillMaxWidth(),
             shape = RoundedCornerShape(14.dp),
             colors = OutlinedTextFieldDefaults.colors(
                 unfocusedContainerColor = Color(0xFFFAF7F4),
@@ -497,8 +495,7 @@ private fun RegisterContent(
             label = { Text("Nombre completo", fontSize = 11.sp) },
             placeholder = { Text("Ej: María García", fontSize = 14.sp) },
             modifier = Modifier
-                .fillMaxWidth()
-                .height(60.dp),
+                .fillMaxWidth(),
             shape = RoundedCornerShape(14.dp),
             colors = OutlinedTextFieldDefaults.colors(
                 unfocusedContainerColor = Color(0xFFFAF7F4),
@@ -526,8 +523,7 @@ private fun RegisterContent(
             isError = emailError,
             supportingText = { if (emailError) Text("Email inválido", color = Color(0xFFB3261E), fontSize = 10.sp) },
             modifier = Modifier
-                .fillMaxWidth()
-                .height(60.dp),
+                .fillMaxWidth(),
             shape = RoundedCornerShape(14.dp),
             colors = OutlinedTextFieldDefaults.colors(
                 unfocusedContainerColor = Color(0xFFFAF7F4),
@@ -555,8 +551,7 @@ private fun RegisterContent(
             isError = passwordError,
             supportingText = { if (passwordError) Text("Mínimo 6 caracteres", color = Color(0xFFB3261E), fontSize = 10.sp) },
             modifier = Modifier
-                .fillMaxWidth()
-                .height(60.dp),
+                .fillMaxWidth(),
             shape = RoundedCornerShape(14.dp),
             colors = OutlinedTextFieldDefaults.colors(
                 unfocusedContainerColor = Color(0xFFFAF7F4),

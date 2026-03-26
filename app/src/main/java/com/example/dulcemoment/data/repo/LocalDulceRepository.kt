@@ -39,6 +39,9 @@ import kotlinx.coroutines.flow.update
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.toRequestBody
+import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneId
 import org.json.JSONObject
 import retrofit2.HttpException
 
@@ -171,6 +174,67 @@ class LocalDulceRepository @Inject constructor(
         }
     }
 
+    override suspend fun updateProduct(
+        productId: Int,
+        name: String,
+        description: String,
+        price: Double,
+        stock: Int,
+    ): Result<Unit> {
+        if (name.isBlank() || description.isBlank() || price <= 0 || stock < 0) {
+            return Result.failure(IllegalArgumentException("Datos de producto inválidos"))
+        }
+        return runCatching {
+            apiCallWithRefresh { token ->
+                apiService.updateProduct(
+                    token,
+                    productId,
+                    UpdateProductRequest(
+                        name = name,
+                        description = description,
+                        base_price = price,
+                        stock = stock,
+                    ),
+                )
+            }
+            refreshProducts()
+        }
+    }
+
+    override suspend fun deleteProduct(productId: Int): Result<String> {
+        return runCatching {
+            apiCallWithRefresh { token ->
+                apiService.updateProduct(
+                    token,
+                    productId,
+                    UpdateProductRequest(is_active = false, stock = 0),
+                )
+            }
+            refreshProducts()
+            "Producto ocultado del catálogo"
+        }
+    }
+
+    override suspend fun ordersSummary(period: String): Result<AdminOrderSummary> {
+        val safePeriod = period.lowercase().ifBlank { "day" }
+        return runCatching {
+            val now = System.currentTimeMillis()
+            val start = startOfPeriodMillis(safePeriod, now)
+            val inPeriod = ordersState.value.filter { it.order.createdAt in start..now }
+            val statusBreakdown = inPeriod
+                .groupBy { it.order.status }
+                .map { it.key to it.value.size }
+                .sortedBy { it.first }
+
+            AdminOrderSummary(
+                period = safePeriod,
+                totalOrders = inPeriod.size,
+                totalSales = inPeriod.sumOf { it.order.total },
+                statusBreakdown = statusBreakdown,
+            )
+        }
+    }
+
     override suspend fun refreshDashboard(): Result<Unit> {
         return runCatching {
             refreshProducts()
@@ -190,12 +254,6 @@ class LocalDulceRepository @Inject constructor(
                 apiCallWithRefresh { token ->
                     apiService.uploadImageToCloudinary(token, CloudinaryUploadRequest(source_url = normalizedUrl)).image_url
                 }
-            }
-        }.recoverCatching { throwable ->
-            if (throwable is HttpException && throwable.code() in setOf(502, 503, 504)) {
-                normalizedUrl
-            } else {
-                throw throwable
             }
         }
     }
@@ -338,6 +396,8 @@ class LocalDulceRepository @Inject constructor(
             refreshOrders()
             appendAlert(customerId, response.id, "Pedido creado", "Tu pedido fue recibido en la tienda")
             response.id
+        }.recoverCatching { error ->
+            throw IllegalStateException(mapErrorToUserMessage(error, "No se pudo crear el pedido"))
         }
     }
 
@@ -486,7 +546,8 @@ class LocalDulceRepository @Inject constructor(
     override suspend fun currentUserOnce(): UserEntity? = sessionState.value
 
     private suspend fun refreshProducts() {
-        val products = apiService.products().map { product ->
+        val onlyActive = sessionState.value?.role != "store"
+        val products = apiService.products(onlyActive = onlyActive).map { product ->
             ProductWithOptions(
                 product = ProductEntity(
                     id = product.id,
@@ -531,7 +592,7 @@ class LocalDulceRepository @Inject constructor(
                     total = order.total,
                     deliveryAddress = order.delivery_address,
                     notes = order.notes,
-                    createdAt = System.currentTimeMillis(),
+                    createdAt = parseIsoTimeOrNow(order.created_at),
                 ),
                 items = order.items.map { item ->
                     OrderItemEntity(
@@ -554,7 +615,7 @@ class LocalDulceRepository @Inject constructor(
                         status = event.status,
                         message = event.message,
                         etaMinutes = event.eta_minutes,
-                        createdAt = System.currentTimeMillis(),
+                        createdAt = parseIsoTimeOrNow(event.created_at),
                     )
                 }
             )
@@ -695,5 +756,22 @@ class LocalDulceRepository @Inject constructor(
                 )
             }
         }
+    }
+
+    private fun parseIsoTimeOrNow(value: String?): Long {
+        if (value.isNullOrBlank()) return System.currentTimeMillis()
+        return runCatching { Instant.parse(value).toEpochMilli() }
+            .getOrElse { System.currentTimeMillis() }
+    }
+
+    private fun startOfPeriodMillis(period: String, nowMillis: Long): Long {
+        val zone = ZoneId.systemDefault()
+        val nowDate = Instant.ofEpochMilli(nowMillis).atZone(zone).toLocalDate()
+        val startDate = when (period) {
+            "week" -> nowDate.minusDays((nowDate.dayOfWeek.value - 1).toLong())
+            "month" -> LocalDate.of(nowDate.year, nowDate.month, 1)
+            else -> nowDate
+        }
+        return startDate.atStartOfDay(zone).toInstant().toEpochMilli()
     }
 }

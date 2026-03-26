@@ -65,6 +65,10 @@ data class CreateProductRequest(
 )
 
 data class UpdateProductRequest(
+    val name: String? = null,
+    val description: String? = null,
+    val base_price: Double? = null,
+    val image_url: String? = null,
     val stock: Int? = null,
     val is_active: Boolean? = null,
 )
@@ -91,6 +95,7 @@ data class TrackingEventDto(
     val status: String,
     val message: String,
     val eta_minutes: Int,
+    val created_at: String,
 )
 
 data class OrderItemDto(
@@ -112,6 +117,7 @@ data class OrderDto(
     val total: Double,
     val delivery_address: String,
     val notes: String,
+    val created_at: String,
     val items: List<OrderItemDto>,
     val events: List<TrackingEventDto>,
 )

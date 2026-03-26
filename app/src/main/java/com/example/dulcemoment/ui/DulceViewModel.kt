@@ -7,6 +7,7 @@ import com.example.dulcemoment.data.local.OrderWithDetails
 import com.example.dulcemoment.data.local.ProductWithOptions
 import com.example.dulcemoment.data.local.PushAlertEntity
 import com.example.dulcemoment.data.local.UserEntity
+import com.example.dulcemoment.data.repo.AdminOrderSummary
 import com.example.dulcemoment.data.repo.CakeRepository
 import com.example.dulcemoment.ui.state.UiErrorType
 import com.example.dulcemoment.ui.state.UiState
@@ -32,6 +33,7 @@ data class DulceUiState(
     val error: String = "",
     val suggestedImageUrl: String = "",
     val inAppAlert: PushAlertEntity? = null,
+    val adminSummary: AdminOrderSummary? = null,
     val screenState: UiState<Unit> = UiState.Success(Unit),
 )
 
@@ -207,6 +209,23 @@ class DulceViewModel @Inject constructor(
         notes: String,
     ) {
         val user = _uiState.value.currentUser ?: return
+        if (user.role != "customer") {
+            emitError("Solo los clientes pueden crear pedidos")
+            return
+        }
+        if (productId <= 0) {
+            emitError("Selecciona un producto antes de crear el pedido")
+            return
+        }
+        if (quantity <= 0) {
+            emitError("La cantidad debe ser mayor a 0")
+            return
+        }
+        if (address.isBlank()) {
+            emitError("Ingresa una dirección de entrega válida")
+            return
+        }
+
         launchWithState {
             repository.createOrder(
                 customerId = user.id,
@@ -228,7 +247,13 @@ class DulceViewModel @Inject constructor(
     fun refreshDashboard() {
         launchWithState {
             repository.refreshDashboard()
-                .onSuccess { emitMessage("Información actualizada") }
+                .onSuccess {
+                    if (_uiState.value.currentUser?.role == "store") {
+                        repository.ordersSummary("day")
+                            .onSuccess { summary -> _uiState.update { it.copy(adminSummary = summary) } }
+                    }
+                    emitMessage("Información actualizada")
+                }
                 .onFailure { emitError(it.message ?: "No se pudo actualizar") }
         }
     }
@@ -265,6 +290,32 @@ class DulceViewModel @Inject constructor(
                     emitMessage("Producto agregado")
                 }
                 .onFailure { emitError(it.message ?: "No se pudo agregar") }
+        }
+    }
+
+    fun updateProduct(productId: Int, name: String, description: String, basePrice: Double, stock: Int) {
+        launchWithState {
+            repository.updateProduct(productId, name, description, basePrice, stock)
+                .onSuccess { emitMessage("Producto actualizado") }
+                .onFailure { emitError(it.message ?: "No se pudo actualizar el producto") }
+        }
+    }
+
+    fun deleteProduct(productId: Int) {
+        launchWithState {
+            repository.deleteProduct(productId)
+                .onSuccess { emitMessage(it) }
+                .onFailure { emitError(it.message ?: "No se pudo eliminar el producto") }
+        }
+    }
+
+    fun loadAdminSummary(period: String) {
+        launchWithState {
+            repository.ordersSummary(period)
+                .onSuccess { summary ->
+                    _uiState.update { it.copy(adminSummary = summary) }
+                }
+                .onFailure { emitError(it.message ?: "No se pudo cargar el resumen de pedidos") }
         }
     }
 
