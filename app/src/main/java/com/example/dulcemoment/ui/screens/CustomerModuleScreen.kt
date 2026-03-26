@@ -436,7 +436,7 @@ fun CustomerModuleScreen(
                     modifier = Modifier
                         .padding(innerPadding)
                         .background(ThemeConstants.CreamPrimary),
-                    verticalArrangement = Arrangement.spacedBy(10.dp),
+                    verticalArrangement = Arrangement.spacedBy(14.dp),
                 ) {
                     item {
                         Card(
@@ -444,14 +444,15 @@ fun CustomerModuleScreen(
                                 .fillMaxWidth()
                                 .padding(horizontal = 12.dp),
                             colors = CardDefaults.cardColors(containerColor = ThemeConstants.SurfaceLight),
+                            elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
                         ) {
                             Column(
-                                modifier = Modifier.padding(14.dp),
-                                verticalArrangement = Arrangement.spacedBy(8.dp)
+                                modifier = Modifier.padding(16.dp),
+                                verticalArrangement = Arrangement.spacedBy(10.dp)
                             ) {
                                 Text(
                                     "Estado de tu pedido",
-                                    style = MaterialTheme.typography.titleMedium,
+                                    style = MaterialTheme.typography.titleLarge,
                                     fontWeight = FontWeight.Bold,
                                     color = ThemeConstants.ChocolateSecondary
                                 )
@@ -461,7 +462,8 @@ fun CustomerModuleScreen(
                                     Text(
                                         "Pedido #${latestOrder.order.id} • ${orderStatusLabel(latestOrder.order.status)}",
                                         color = ThemeConstants.OnCreamPrimary,
-                                        fontWeight = FontWeight.SemiBold
+                                        fontWeight = FontWeight.SemiBold,
+                                        style = MaterialTheme.typography.titleMedium
                                     )
                                     OrderStatusStepper(currentStatus = latestOrder.order.status)
                                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -472,13 +474,23 @@ fun CustomerModuleScreen(
                                         ) {
                                             Text("Ver detalle", fontWeight = FontWeight.SemiBold)
                                         }
-                                        Button(
-                                            onClick = { showCheckoutSheet = true },
-                                            modifier = Modifier.weight(1f),
-                                            colors = accentButtonColors
-                                        ) {
-                                            Text("Pagar", fontWeight = FontWeight.SemiBold)
+                                        if (latestOrder.order.status == "created") {
+                                            Button(
+                                                onClick = { showCheckoutSheet = true },
+                                                modifier = Modifier.weight(1f),
+                                                colors = accentButtonColors
+                                            ) {
+                                                Text("Pagar", fontWeight = FontWeight.SemiBold)
+                                            }
                                         }
+                                    }
+                                    if (latestOrder.order.status == "created") {
+                                        Text(
+                                            "Al pagar, el vendedor será notificado automáticamente.",
+                                            color = ThemeConstants.TextMedium,
+                                            style = MaterialTheme.typography.bodySmall,
+                                            modifier = Modifier.padding(top = 4.dp)
+                                        )
                                     }
                                 }
                             }
@@ -491,10 +503,11 @@ fun CustomerModuleScreen(
                                 .fillMaxWidth()
                                 .padding(horizontal = 12.dp),
                             colors = CardDefaults.cardColors(containerColor = ThemeConstants.SurfaceLight),
+                            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
                         ) {
                             Column(
                                 modifier = Modifier.padding(14.dp),
-                                verticalArrangement = Arrangement.spacedBy(8.dp)
+                                verticalArrangement = Arrangement.spacedBy(10.dp)
                             ) {
                                 Text(
                                     "Mis pedidos",
@@ -509,31 +522,68 @@ fun CustomerModuleScreen(
                                         .sortedByDescending { it.order.createdAt }
                                         .forEach { orderDetail ->
                                             Card(
-                                                modifier = Modifier.fillMaxWidth(),
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .padding(vertical = 4.dp),
                                                 colors = CardDefaults.cardColors(containerColor = ThemeConstants.SurfaceLighter),
+                                                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
                                             ) {
                                                 Column(
                                                     modifier = Modifier.padding(10.dp),
-                                                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                                                    verticalArrangement = Arrangement.spacedBy(6.dp),
                                                 ) {
-                                                    Text(
-                                                        "Pedido #${orderDetail.order.id} • ${orderStatusLabel(orderDetail.order.status)}",
-                                                        color = ThemeConstants.ChocolateSecondary,
-                                                        fontWeight = FontWeight.SemiBold,
-                                                    )
+                                                    Row(
+                                                        modifier = Modifier.fillMaxWidth(),
+                                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                                        verticalAlignment = Alignment.CenterVertically
+                                                    ) {
+                                                        Text(
+                                                            "Pedido #${orderDetail.order.id}",
+                                                            color = ThemeConstants.ChocolateSecondary,
+                                                            fontWeight = FontWeight.SemiBold,
+                                                            style = MaterialTheme.typography.bodyLarge
+                                                        )
+                                                        Text(
+                                                            orderStatusLabel(orderDetail.order.status),
+                                                            color = ThemeConstants.TextMedium,
+                                                            style = MaterialTheme.typography.bodySmall
+                                                        )
+                                                    }
                                                     Text(
                                                         "Fecha: ${formatOrderDate(orderDetail.order.createdAt)}",
                                                         color = ThemeConstants.TextMedium,
+                                                        style = MaterialTheme.typography.bodySmall
                                                     )
                                                     Text(
                                                         "Total: $${"%.2f".format(orderDetail.order.total)}",
                                                         color = ThemeConstants.OnCreamPrimary,
+                                                        style = MaterialTheme.typography.bodyMedium
                                                     )
-                                                    Button(
-                                                        onClick = { onOpenOrder(orderDetail.order.id) },
-                                                        colors = primaryButtonColors,
-                                                    ) {
-                                                        Text("Ver detalle", fontWeight = FontWeight.SemiBold)
+                                                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                                        Button(
+                                                            onClick = { onOpenOrder(orderDetail.order.id) },
+                                                            colors = primaryButtonColors,
+                                                        ) {
+                                                            Text("Ver detalle", fontWeight = FontWeight.SemiBold)
+                                                        }
+                                                        if (orderDetail.order.status == "created") {
+                                                            Button(
+                                                                onClick = {
+                                                                    showCheckoutSheet = true
+                                                                },
+                                                                colors = accentButtonColors,
+                                                            ) {
+                                                                Text("Pagar", fontWeight = FontWeight.SemiBold)
+                                                            }
+                                                        }
+                                                    }
+                                                    if (orderDetail.order.status == "created") {
+                                                        Text(
+                                                            "Al pagar, el vendedor será notificado automáticamente.",
+                                                            color = ThemeConstants.TextMedium,
+                                                            style = MaterialTheme.typography.bodySmall,
+                                                            modifier = Modifier.padding(top = 2.dp)
+                                                        )
                                                     }
                                                 }
                                             }
