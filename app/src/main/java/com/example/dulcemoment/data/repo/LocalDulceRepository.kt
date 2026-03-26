@@ -22,6 +22,7 @@ import com.example.dulcemoment.data.network.CreateOrderRequest
 import com.example.dulcemoment.data.network.CreateProductRequest
 import com.example.dulcemoment.data.network.LogoutRequest
 import com.example.dulcemoment.data.network.OrderItemRequest
+import com.example.dulcemoment.data.network.UpdateUserRequest
 import com.example.dulcemoment.data.network.RetrofitClient
 import com.example.dulcemoment.data.network.RefreshTokenRequest
 import com.example.dulcemoment.data.network.UpdateOrderStatusRequest
@@ -128,6 +129,46 @@ class LocalDulceRepository @Inject constructor(
         }
 
         clearLocalSession()
+    }
+
+    override suspend fun updateCurrentUserProfile(name: String, email: String): Result<UserEntity> {
+        val current = sessionState.value ?: return Result.failure(IllegalStateException("Sesión no iniciada"))
+        if (name.trim().length < 2) {
+            return Result.failure(IllegalArgumentException("El nombre debe tener al menos 2 caracteres"))
+        }
+        if (!email.contains("@")) {
+            return Result.failure(IllegalArgumentException("Email inválido"))
+        }
+
+        return runCatching {
+            val updated = apiCallWithRefresh { token ->
+                apiService.updateMe(
+                    token,
+                    UpdateUserRequest(name = name.trim(), email = email.trim()),
+                )
+            }
+            val user = UserEntity(
+                id = updated.id,
+                name = updated.name,
+                email = updated.email,
+                password = "",
+                role = updated.role,
+            )
+            sessionState.value = user
+            sessionStore.updateUser(user)
+            user
+        }.recoverCatching { error ->
+            throw IllegalStateException(mapErrorToUserMessage(error, "No se pudo actualizar el perfil"))
+        }
+    }
+
+    override suspend fun getStorePublicProfile(): Result<Pair<String, String>> {
+        return runCatching {
+            val response = apiCallWithRefresh { token -> apiService.storePublicProfile(token) }
+            response.name to response.email
+        }.recoverCatching { error ->
+            throw IllegalStateException(mapErrorToUserMessage(error, "No se pudo cargar la información del vendedor"))
+        }
     }
 
     private fun clearLocalSession() {
@@ -711,6 +752,8 @@ class LocalDulceRepository @Inject constructor(
         if (body.isNotBlank()) {
             runCatching {
                 val json = JSONObject(body)
+                val message = json.optString("message", "")
+                if (message.isNotBlank()) return message
                 val detail = json.opt("detail")
                 when (detail) {
                     is String -> detail

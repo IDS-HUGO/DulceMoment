@@ -52,6 +52,15 @@ class SessionStore(context: Context) {
             .apply()
     }
 
+    fun updateUser(user: UserEntity) {
+        prefs.edit()
+            .putInt("user_id", user.id)
+            .putString("user_name", user.name)
+            .putString("user_email", user.email)
+            .putString("user_role", user.role)
+            .apply()
+    }
+
     fun clear() {
         prefs.edit().clear().apply()
     }

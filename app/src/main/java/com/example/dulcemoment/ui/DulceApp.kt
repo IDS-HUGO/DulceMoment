@@ -166,10 +166,15 @@ fun DulceApp(
                     stockState = stockState,
                     orders = uiState.orders,
                     alerts = uiState.alerts.map { it.body },
+                    customerName = uiState.currentUser?.name.orEmpty(),
+                    customerEmail = uiState.currentUser?.email.orEmpty(),
+                    sellerName = uiState.storeName,
+                    sellerEmail = uiState.storeEmail,
                     onCreateOrder = { productId, quantity, ingredients, size, shape, flavor, color, address, notes ->
                         viewModel.createOrder(productId, quantity, ingredients, size, shape, flavor, color, address, notes)
                     },
                     onPay = viewModel::payOrder,
+                    onUpdateProfile = viewModel::updateCustomerProfile,
                     onOpenOrder = { orderId -> navController.navigate(Routes.orderDetail(orderId)) },
                     onLogout = viewModel::logout,
                     onLogoutAll = viewModel::logoutAllDevices,

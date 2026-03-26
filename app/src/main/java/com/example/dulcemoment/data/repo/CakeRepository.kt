@@ -27,6 +27,8 @@ interface CakeRepository {
     suspend fun bootstrapSession()
     suspend fun logout()
     suspend fun logoutAllDevices()
+    suspend fun updateCurrentUserProfile(name: String, email: String): Result<UserEntity>
+    suspend fun getStorePublicProfile(): Result<Pair<String, String>>
 
     suspend fun addProduct(name: String, description: String, price: Double, stock: Int, imageUrl: String): Result<Unit>
     suspend fun updateProduct(productId: Int, name: String, description: String, price: Double, stock: Int): Result<Unit>

@@ -14,6 +14,17 @@ data class UserDto(
     val role: String,
 )
 
+data class UpdateUserRequest(
+    val name: String? = null,
+    val email: String? = null,
+)
+
+data class StorePublicProfileDto(
+    val id: Int,
+    val name: String,
+    val email: String,
+)
+
 data class AuthResponse(
     val user: UserDto,
     val access_token: String,
@@ -53,6 +64,8 @@ data class ProductDto(
     val stock: Int,
     val is_active: Boolean,
     val image_url: String,
+    val seller_name: String = "",
+    val seller_email: String = "",
     val options: List<ProductOptionDto>,
 )
 

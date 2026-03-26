@@ -34,6 +34,8 @@ data class DulceUiState(
     val suggestedImageUrl: String = "",
     val inAppAlert: PushAlertEntity? = null,
     val adminSummary: AdminOrderSummary? = null,
+    val storeName: String = "DulceMoment",
+    val storeEmail: String = "",
     val screenState: UiState<Unit> = UiState.Success(Unit),
 )
 
@@ -89,7 +91,7 @@ class DulceViewModel @Inject constructor(
             alertsInitialized = false
             seenAlertIds.clear()
             lastKnownOrderStatus.clear()
-            _uiState.update { it.copy(orders = emptyList(), alerts = emptyList()) }
+            _uiState.update { it.copy(orders = emptyList(), alerts = emptyList(), storeName = "DulceMoment", storeEmail = "") }
             return
         }
 
@@ -251,10 +253,24 @@ class DulceViewModel @Inject constructor(
                     if (_uiState.value.currentUser?.role == "store") {
                         repository.ordersSummary("day")
                             .onSuccess { summary -> _uiState.update { it.copy(adminSummary = summary) } }
+                    } else {
+                        repository.getStorePublicProfile()
+                            .onSuccess { (name, email) -> _uiState.update { it.copy(storeName = name, storeEmail = email) } }
                     }
                     emitMessage("Información actualizada")
                 }
                 .onFailure { emitError(it.message ?: "No se pudo actualizar") }
+        }
+    }
+
+    fun updateCustomerProfile(name: String, email: String) {
+        launchWithState {
+            repository.updateCurrentUserProfile(name, email)
+                .onSuccess { updated ->
+                    _uiState.update { it.copy(currentUser = updated) }
+                    emitMessage("Perfil actualizado")
+                }
+                .onFailure { emitError(it.message ?: "No se pudo actualizar el perfil") }
         }
     }
 

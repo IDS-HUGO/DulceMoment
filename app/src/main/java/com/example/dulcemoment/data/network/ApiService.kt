@@ -46,6 +46,15 @@ interface ApiService {
     @GET("api/v1/auth/me")
     suspend fun me(@Header("Authorization") authHeader: String): UserDto
 
+    @PATCH("api/v1/auth/me")
+    suspend fun updateMe(
+        @Header("Authorization") authHeader: String,
+        @Body body: UpdateUserRequest,
+    ): UserDto
+
+    @GET("api/v1/store/public-profile")
+    suspend fun storePublicProfile(@Header("Authorization") authHeader: String): StorePublicProfileDto
+
     @GET("api/v1/products")
     suspend fun products(@Query("only_active") onlyActive: Boolean = true): List<ProductDto>
 
