@@ -66,6 +66,52 @@ private enum class SellerSection {
 
 @Composable
 fun SellerModuleScreen(
+            val doLogout: () -> Unit = {
+                errorType = com.example.dulcemoment.ui.state.UiErrorType.SERVER
+                errorMessage = "No se pudo cerrar sesión. Intenta de nuevo."
+            }
+            val doLogoutAll: () -> Unit = {
+                errorType = com.example.dulcemoment.ui.state.UiErrorType.SERVER
+                errorMessage = "No se pudo cerrar todas las sesiones. Intenta de nuevo."
+            }
+        var errorType by rememberSaveable { mutableStateOf<com.example.dulcemoment.ui.state.UiErrorType?>(null) }
+        var errorMessage by rememberSaveable { mutableStateOf("") }
+
+        // Simulación: conecta esto a tu lógica real de acciones
+        val doAddProduct: (String, String, Double, Int, String) -> Unit = { name, desc, price, stock, img ->
+            if (name.isBlank() || price <= 0.0 || stock < 0) {
+                errorType = com.example.dulcemoment.ui.state.UiErrorType.PAYMENT_REJECTED
+                errorMessage = "Datos de producto inválidos."
+            } else {
+                errorType = com.example.dulcemoment.ui.state.UiErrorType.SERVER
+                errorMessage = "No se pudo agregar el producto. Intenta de nuevo."
+            }
+        }
+        val doEditProduct: (Int, String, String, Double, Int) -> Unit = { id, name, desc, price, stock ->
+            if (name.isBlank() || price <= 0.0 || stock < 0) {
+                errorType = com.example.dulcemoment.ui.state.UiErrorType.PAYMENT_REJECTED
+                errorMessage = "Datos de producto inválidos."
+            } else {
+                errorType = com.example.dulcemoment.ui.state.UiErrorType.SERVER
+                errorMessage = "No se pudo editar el producto. Intenta de nuevo."
+            }
+        }
+        val doDeleteProduct: (Int) -> Unit = { id ->
+            errorType = com.example.dulcemoment.ui.state.UiErrorType.SERVER
+            errorMessage = "No se pudo eliminar el producto. Intenta de nuevo."
+        }
+
+        if (errorType != null) {
+            ErrorStateScreen(
+                type = errorType!!,
+                message = errorMessage,
+                onRetry = {
+                    errorType = null
+                    errorMessage = ""
+                }
+            )
+            return
+        }
     products: List<ProductWithOptions>,
     stockState: Map<Int, Boolean>,
     orders: List<OrderWithDetails>,
@@ -457,9 +503,9 @@ fun SellerModuleScreen(
                                     val units = stock.toIntOrNull() ?: return@Button
                                     val editId = editingProductId
                                     if (editId == null) {
-                                        onAddProduct(name, description, price, units, imageUrl)
+                                        doAddProduct(name, description, price, units, imageUrl)
                                     } else {
-                                        onEditProduct(editId, name, description, price, units)
+                                        doEditProduct(editId, name, description, price, units)
                                     }
                                 },
                                 enabled = imageUrl.isNotBlank() || editingProductId != null,
@@ -548,7 +594,7 @@ fun SellerModuleScreen(
                                         Text("Editar", fontWeight = FontWeight.SemiBold)
                                     }
                                     Button(
-                                        onClick = { onDeleteProduct(product.product.id) },
+                                        onClick = { doDeleteProduct(product.product.id) },
                                         colors = ButtonDefaults.buttonColors(
                                             containerColor = ThemeConstants.ErrorRed,
                                             contentColor = androidx.compose.ui.graphics.Color.White,
@@ -589,14 +635,14 @@ fun SellerModuleScreen(
                                     Text("Actualizar datos", fontWeight = FontWeight.SemiBold)
                                 }
                                 FilledTonalButton(
-                                    onClick = onLogoutAll,
+                                    onClick = doLogoutAll,
                                     modifier = Modifier.fillMaxWidth(),
                                     colors = accentTonalColors,
                                 ) {
                                     Text("Cerrar sesión en todos", fontWeight = FontWeight.SemiBold)
                                 }
                                 Button(
-                                    onClick = onLogout,
+                                    onClick = doLogout,
                                     modifier = Modifier.fillMaxWidth(),
                                     colors = ButtonDefaults.buttonColors(
                                         containerColor = ThemeConstants.ErrorRed,

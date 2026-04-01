@@ -66,38 +66,36 @@ fun LoginGlassScreen(
     onLogin: (String, String) -> Unit,
     onGoRegister: () -> Unit,
 ) {
-    // GRADIENTE HERMOSO - Paleta profesional
-    val gradient = Brush.verticalGradient(
-        colors = listOf(
-            Color(0xFFFDFBF5),          // Crema claro
-            Color(0xFFF4E0DB).copy(alpha = 0.9f), // Pastel
-            Color(0xFFFEF5E7)           // Crema cálido
-        )
-    )
+    var errorType by rememberSaveable { mutableStateOf<com.example.dulcemoment.ui.state.UiErrorType?>(null) }
+    var errorMessage by rememberSaveable { mutableStateOf("") }
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(gradient),
-        contentAlignment = Alignment.Center
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 18.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            // LOGO GRANDE Y HERMOSO
+    // Simulación: podrías conectar esto a tu lógica real de login
+    val doLogin: (String, String) -> Unit = { email, password ->
+        // Aquí iría la llamada real a la API
+        if (!email.contains("@") || password.length < 6) {
+            errorType = com.example.dulcemoment.ui.state.UiErrorType.PAYMENT_REJECTED
+            errorMessage = "Credenciales inválidas."
+        } else {
+            // Simular error de red o servidor
+            errorType = com.example.dulcemoment.ui.state.UiErrorType.SERVER
+            errorMessage = "No se pudo iniciar sesión. Intenta de nuevo."
+        }
+    }
+
+    if (errorType != null) {
+        ErrorStateScreen(
+            type = errorType!!,
+            message = errorMessage,
+            onRetry = {
+                errorType = null
+                errorMessage = ""
+            }
+        )
+        return
+    }
+
+    // ...existing code...
             Box(
-                modifier = Modifier
-                    .size(100.dp)
-                    .shadow(16.dp, shape = RoundedCornerShape(28.dp))
-                    .background(Color.White, shape = RoundedCornerShape(28.dp))
-                    .clip(RoundedCornerShape(28.dp)),
-                contentAlignment = Alignment.Center
-            ) {
-                Image(
                     painter = painterResource(id = R.drawable.ic_dulce_moment),
                     contentDescription = "DulceMoment Logo",
                     modifier = Modifier
@@ -150,7 +148,7 @@ fun LoginGlassScreen(
                         transitionSpec = { fadeIn(tween(300)) togetherWith fadeOut(tween(300)) },
                         label = "auth_login_transition",
                     ) {
-                        LoginContent(onLogin = onLogin, onGoRegister = onGoRegister)
+                        LoginContent(onLogin = doLogin, onGoRegister = onGoRegister)
                     }
                 }
             }
@@ -165,37 +163,35 @@ fun RegisterGlassScreen(
     onRegister: (String, String, String, String) -> Unit,
     onGoLogin: () -> Unit,
 ) {
-    val gradient = Brush.verticalGradient(
-        colors = listOf(
-            Color(0xFFFDFBF5),
-            Color(0xFFF4E0DB).copy(alpha = 0.9f),
-            Color(0xFFFEF5E7)
-        )
-    )
+    var errorType by rememberSaveable { mutableStateOf<com.example.dulcemoment.ui.state.UiErrorType?>(null) }
+    var errorMessage by rememberSaveable { mutableStateOf("") }
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(gradient),
-        contentAlignment = Alignment.Center
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 18.dp)
-                .verticalScroll(rememberScrollState()),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
+    // Simulación: podrías conectar esto a tu lógica real de registro
+    val doRegister: (String, String, String, String) -> Unit = { name, email, password, role ->
+        if (!email.contains("@") || password.length < 6 || name.isBlank()) {
+            errorType = com.example.dulcemoment.ui.state.UiErrorType.PAYMENT_REJECTED
+            errorMessage = "Datos inválidos."
+        } else {
+            // Simular error de red o servidor
+            errorType = com.example.dulcemoment.ui.state.UiErrorType.SERVER
+            errorMessage = "No se pudo crear la cuenta. Intenta de nuevo."
+        }
+    }
+
+    if (errorType != null) {
+        ErrorStateScreen(
+            type = errorType!!,
+            message = errorMessage,
+            onRetry = {
+                errorType = null
+                errorMessage = ""
+            }
+        )
+        return
+    }
+
+    // ...existing code...
             Box(
-                modifier = Modifier
-                    .size(100.dp)
-                    .shadow(16.dp, shape = RoundedCornerShape(28.dp))
-                    .background(Color.White, shape = RoundedCornerShape(28.dp))
-                    .clip(RoundedCornerShape(28.dp)),
-                contentAlignment = Alignment.Center
-            ) {
-                Image(
                     painter = painterResource(id = R.drawable.ic_dulce_moment),
                     contentDescription = "DulceMoment Logo",
                     modifier = Modifier
@@ -246,7 +242,7 @@ fun RegisterGlassScreen(
                         transitionSpec = { fadeIn(tween(300)) togetherWith fadeOut(tween(300)) },
                         label = "auth_register_transition",
                     ) {
-                        RegisterContent(onRegister = onRegister, onGoLogin = onGoLogin)
+                        RegisterContent(onRegister = doRegister, onGoLogin = onGoLogin)
                     }
                 }
             }
