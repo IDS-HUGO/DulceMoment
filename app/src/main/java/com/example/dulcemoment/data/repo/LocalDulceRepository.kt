@@ -48,7 +48,7 @@ import retrofit2.HttpException
 
 @Singleton
 class LocalDulceRepository @Inject constructor(
-    @ApplicationContext private val context: Context,
+    @param:ApplicationContext private val context: Context,
     private val apiService: ApiService = RetrofitClient.api,
 ) : CakeRepository {
     private val sessionStore = SessionStore(context.applicationContext)

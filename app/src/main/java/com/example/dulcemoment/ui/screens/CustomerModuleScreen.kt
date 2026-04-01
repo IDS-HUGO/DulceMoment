@@ -64,137 +64,127 @@ import java.util.Locale
 
 private enum class CustomerSection {
     Catalog,
-    @OptIn(ExperimentalMaterial3Api::class)
-    @Composable
-    private fun CheckoutBottomSheet(
-        sheetState: androidx.compose.material3.SheetState,
-        orderId: Int?,
-        onDismiss: () -> Unit,
-        onPay: (Int, String, String, String, String) -> Unit,
-    ) {
-        var cardNumber by rememberSaveable { mutableStateOf("") }
-        var holderName by rememberSaveable { mutableStateOf("") }
-        var cvv by rememberSaveable { mutableStateOf("") }
-        var expiry by rememberSaveable { mutableStateOf("") }
-        var showCvv by rememberSaveable { mutableStateOf(false) }
-        var errorType by rememberSaveable { mutableStateOf<com.example.dulcemoment.ui.state.UiErrorType?>(null) }
-        var errorMessage by rememberSaveable { mutableStateOf("") }
+    Orders,
+    Profile,
+}
 
-        // TODO: Reemplazar con datos reales del pedido
-        val subtotal = 100.0 // Ejemplo
-        val iva = subtotal * 0.05
-        val total = subtotal + iva
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun CustomerModuleScreen(
+    products: List<ProductWithOptions>,
+    stockState: Map<Int, Boolean>,
+    orders: List<OrderWithDetails>,
+    alerts: List<String>,
+    customerName: String,
+    customerEmail: String,
+    sellerName: String,
+    sellerEmail: String,
+    onCreateOrder: (Int, Int, String, String, String, String, String, String, String) -> Unit,
+    onPay: (Int, String, String, String, String) -> Unit,
+    onUpdateProfile: (String, String) -> Unit,
+    onOpenOrder: (Int) -> Unit,
+    onLogout: () -> Unit,
+    onLogoutAll: () -> Unit,
+    onRefresh: () -> Unit,
+) {
+    var selectedSection by rememberSaveable { mutableStateOf(CustomerSection.Catalog) }
 
-        val maskedCard = remember(cardNumber) { maskCardNumber(cardNumber) }
-        val maskedExp = remember(expiry) { maskExpiry(expiry) }
-        val cardValid = maskedCard.filter { it.isDigit() }.length == 16
-        val holderValid = holderName.trim().length >= 3
-        val cvvValid = cvv.length in 3..4
-        val expValid = maskedExp.length == 5
+    var selectedProductId by rememberSaveable { mutableStateOf(0) }
+    var quantity by rememberSaveable { mutableStateOf(1) }
+    var selectedShape by rememberSaveable { mutableStateOf("redondo") }
+    var selectedFlavor by rememberSaveable { mutableStateOf("chocolate") }
+    var selectedColor by rememberSaveable { mutableStateOf("rosa") }
+    var ingredients by rememberSaveable { mutableStateOf("fresa,oreo") }
+    var address by rememberSaveable { mutableStateOf("Av. Principal 123") }
+    var notes by rememberSaveable { mutableStateOf("") }
+    var showCheckoutSheet by rememberSaveable { mutableStateOf(false) }
 
-        if (errorType != null) {
-            ErrorStateScreen(
-                type = errorType!!,
-                message = errorMessage,
-                onRetry = {
-                    errorType = null
-                    errorMessage = ""
-                }
-            )
-            return
-        }
+    var editableName by rememberSaveable(customerName) { mutableStateOf(customerName) }
+    var editableEmail by rememberSaveable(customerEmail) { mutableStateOf(customerEmail) }
 
-        ModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState) {
-            Column(
-                modifier = Modifier.padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(14.dp),
-            ) {
-                Text("Pago del pedido", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, color = ThemeConstants.ChocolateSecondary)
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(containerColor = ThemeConstants.SurfaceLight),
-                ) {
-                    Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                        Text("Subtotal: $${"%.2f".format(subtotal)}", color = ThemeConstants.TextMedium)
-                        Text("IVA (5%): $${"%.2f".format(iva)}", color = ThemeConstants.TextMedium)
-                        Text("Total: $${"%.2f".format(total)}", fontWeight = FontWeight.Bold, color = ThemeConstants.ChocolateSecondary)
-                    }
-                }
-                OutlinedTextField(
-                    value = maskedCard,
-                    onValueChange = { cardNumber = it.filter(Char::isDigit).take(16) },
-                    label = { Text("Número de tarjeta") },
-                    isError = !cardValid && maskedCard.isNotBlank(),
-                    supportingText = { if (!cardValid && maskedCard.isNotBlank()) Text("Formato 16 dígitos") },
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(16.dp),
-                    singleLine = true,
-                    leadingIcon = { Icon(Icons.Filled.CreditCard, contentDescription = null) },
-                )
-                OutlinedTextField(
-                    value = cvv,
-                    onValueChange = { cvv = it.filter(Char::isDigit).take(4) },
-                    label = { Text("CVV") },
-                    isError = !cvvValid && cvv.isNotBlank(),
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(16.dp),
-                    singleLine = true,
-                    visualTransformation = if (showCvv) VisualTransformation.None else PasswordVisualTransformation(),
-                    trailingIcon = {
-                        IconButton(onClick = { showCvv = !showCvv }) {
-                            Icon(
-                                imageVector = if (showCvv) Icons.Filled.VisibilityOff else Icons.Filled.Visibility,
-                                contentDescription = if (showCvv) "Ocultar CVV" else "Mostrar CVV"
-                            )
-                        }
-                    },
-                )
-                OutlinedTextField(
-                    value = holderName,
-                    onValueChange = { holderName = it },
-                    label = { Text("Titular de la tarjeta") },
-                    isError = !holderValid && holderName.isNotBlank(),
-                    supportingText = { if (!holderValid && holderName.isNotBlank()) Text("Mínimo 3 caracteres") },
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(16.dp),
-                    singleLine = true,
-                    leadingIcon = { Icon(Icons.Filled.Person, contentDescription = null) },
-                )
-                OutlinedTextField(
-                    value = maskedExp,
-                    onValueChange = { expiry = it.filter(Char::isDigit).take(4) },
-                    label = { Text("Exp MM/YY") },
-                    isError = !expValid && maskedExp.isNotBlank(),
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(16.dp),
-                    singleLine = true,
-                    leadingIcon = { Icon(Icons.Filled.DateRange, contentDescription = null) },
-                )
-                Button(
-                    onClick = {
-                        if (orderId != null) {
-                            // Aquí iría la llamada real a la API de pago
-                            // Simulación de errores para demo:
-                            if (!cardValid || !holderValid || !cvvValid || !expValid) {
-                                errorType = com.example.dulcemoment.ui.state.UiErrorType.PAYMENT_REJECTED
-                                errorMessage = "Datos de tarjeta inválidos."
-                            } else {
-                                // Simular error de red o servidor
-                                errorType = com.example.dulcemoment.ui.state.UiErrorType.SERVER
-                                errorMessage = "No se pudo procesar el pago. Intenta de nuevo."
-                            }
-                        }
-                    },
-                    enabled = orderId != null && cardValid && holderValid && cvvValid && expValid,
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = ButtonDefaults.buttonColors(containerColor = ThemeConstants.ChocolateSecondary, contentColor = Color.White)
-                ) {
-                    Text("Pagar")
-                }
-                Spacer(modifier = Modifier.height(10.dp))
-            }
+    val fieldColors = OutlinedTextFieldDefaults.colors(
+        focusedTextColor = ThemeConstants.OnCreamPrimary,
+        unfocusedTextColor = ThemeConstants.OnCreamPrimary,
+        focusedContainerColor = ThemeConstants.SurfaceLight,
+        unfocusedContainerColor = ThemeConstants.SurfaceLighter,
+        focusedBorderColor = ThemeConstants.ChocolateSecondary,
+        unfocusedBorderColor = ThemeConstants.BorderLight,
+        cursorColor = ThemeConstants.ChocolateSecondary,
+        focusedLabelColor = ThemeConstants.ChocolateSecondary,
+        unfocusedLabelColor = ThemeConstants.TextMedium,
+        focusedPlaceholderColor = ThemeConstants.TextMedium,
+        unfocusedPlaceholderColor = ThemeConstants.TextMedium,
+    )
+
+    val primaryButtonColors = ButtonDefaults.buttonColors(
+        containerColor = ThemeConstants.ChocolateSecondary,
+        contentColor = Color.White,
+        disabledContainerColor = ThemeConstants.BorderMedium,
+        disabledContentColor = ThemeConstants.OnCreamPrimary.copy(alpha = 0.75f),
+    )
+
+    val accentButtonColors = ButtonDefaults.buttonColors(
+        containerColor = ThemeConstants.PastelAccent,
+        contentColor = ThemeConstants.ChocolateSecondary,
+        disabledContainerColor = ThemeConstants.SurfaceLighter,
+        disabledContentColor = ThemeConstants.TextMedium,
+    )
+
+    val selectedProduct = products.firstOrNull { it.product.id == selectedProductId }
+    val selectedInStock = selectedProduct?.let { product ->
+        stockState[product.product.id] ?: (product.product.stock > 0)
+    } ?: false
+    val canCreateOrder = selectedProduct != null && selectedInStock && address.isNotBlank() && quantity > 0
+
+    LaunchedEffect(products, stockState, selectedProductId) {
+        val currentSelectionExists = products.any { it.product.id == selectedProductId }
+        if (!currentSelectionExists) {
+            selectedProductId = products
+                .firstOrNull { stockState[it.product.id] ?: (it.product.stock > 0) }
+                ?.product
+                ?.id
+                ?: 0
         }
     }
+
+    val dynamicPrice by remember(selectedProduct, quantity, selectedShape, selectedFlavor, selectedColor, ingredients) {
+        derivedStateOf {
+            selectedProduct?.let { product ->
+                val options = product.options
+                val selectionDelta = listOf(
+                    "shape" to selectedShape,
+                    "flavor" to selectedFlavor,
+                    "color" to selectedColor,
+                ).sumOf { (category, value) ->
+                    options.firstOrNull { it.category == category && it.value.equals(value, ignoreCase = true) }?.priceDelta ?: 0.0
+                }
+                val ingredientDelta = ingredients
+                    .split(",")
+                    .map { it.trim() }
+                    .filter { it.isNotBlank() }
+                    .sumOf { selectedIngredient ->
+                        options.firstOrNull {
+                            it.category == "ingredient" && it.value.equals(selectedIngredient, ignoreCase = true)
+                        }?.priceDelta ?: 0.0
+                    }
+                (product.product.basePrice + selectionDelta + ingredientDelta) * quantity
+            } ?: 0.0
+        }
+    }
+
+    val latestOrder = orders.firstOrNull()
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+
+    if (showCheckoutSheet) {
+        CheckoutBottomSheet(
+            sheetState = sheetState,
+            orderId = latestOrder?.order?.id,
+            onDismiss = { showCheckoutSheet = false },
+            onPay = onPay,
+        )
+    }
+
+    Scaffold(
         containerColor = ThemeConstants.CreamPrimary,
         bottomBar = {
             NavigationBar(containerColor = ThemeConstants.SurfaceLight) {
