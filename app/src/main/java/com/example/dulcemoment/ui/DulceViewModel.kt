@@ -440,6 +440,9 @@ class DulceViewModel @Inject constructor(
         if (text.isBlank()) return fallback
 
         val lowered = text.lowercase()
+        if (lowered.contains("payment required") || lowered.contains("402")) {
+            return "El pago no pudo procesarse. Revisa la tarjeta e inténtalo de nuevo."
+        }
         val paymentMessage = mapMercadoPagoStatusDetail(lowered)
         if (paymentMessage != null) return paymentMessage
 

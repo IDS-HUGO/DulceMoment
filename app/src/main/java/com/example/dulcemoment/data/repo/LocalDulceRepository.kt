@@ -484,15 +484,10 @@ class LocalDulceRepository @Inject constructor(
     ): Result<String> {
         val provider = BuildConfig.PAYMENT_PROVIDER.lowercase()
 
-        if (provider == "stripe" && BuildConfig.STRIPE_PUBLISHABLE_KEY.isBlank()) {
+        // Stripe es el único provider soportado
+        if (BuildConfig.STRIPE_PUBLISHABLE_KEY.isBlank()) {
             return Result.failure(
                 IllegalStateException("Falta STRIPE_PUBLISHABLE_KEY. Configúrala en propiedades de Gradle para habilitar pagos.")
-            )
-        }
-
-        if ((provider == "mercadopago" || provider == "mercado_pago") && BuildConfig.MERCADOPAGO_PUBLIC_KEY.isBlank()) {
-            return Result.failure(
-                IllegalStateException("Falta MERCADOPAGO_PUBLIC_KEY. Configúrala en propiedades de Gradle para habilitar pagos.")
             )
         }
 

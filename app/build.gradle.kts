@@ -46,24 +46,20 @@ android {
     buildTypes {
         debug {
             val apiBaseUrl = normalizedBaseUrl(localOrProjectProperty("API_BASE_URL", "https://apidulcemoment.ferluna.online/"))
-            val paymentProvider = localOrProjectProperty("PAYMENT_PROVIDER", "mercadopago")
-            val stripePublishableKey = localOrProjectProperty("STRIPE_PUBLISHABLE_KEY")
-            val mercadoPagoPublicKey = localOrProjectProperty("MERCADOPAGO_PUBLIC_KEY")
+            val paymentProvider = localOrProjectProperty("PAYMENT_PROVIDER", "stripe")
+            val stripePublishableKey = localOrProjectProperty("STRIPE_PUBLISHABLE_KEY", "pk_test_51THZfYRY7KewwenDlZH97Z6WCOrWElZSr1oGrVxwRR4CrUIorUX2FiElUf6mwG5DdWJEvyWvUCDIZZih6LpNkvac00ZfRY0czV")
             buildConfigField("String", "API_BASE_URL", "\"$apiBaseUrl\"")
             buildConfigField("String", "PAYMENT_PROVIDER", "\"$paymentProvider\"")
             buildConfigField("String", "STRIPE_PUBLISHABLE_KEY", "\"$stripePublishableKey\"")
-            buildConfigField("String", "MERCADOPAGO_PUBLIC_KEY", "\"$mercadoPagoPublicKey\"")
         }
         release {
             isMinifyEnabled = false
             val apiBaseUrl = normalizedBaseUrl(localOrProjectProperty("API_BASE_URL", "https://apidulcemoment.ferluna.online/"))
-            val paymentProvider = localOrProjectProperty("PAYMENT_PROVIDER", "mercadopago")
-            val stripePublishableKey = localOrProjectProperty("STRIPE_PUBLISHABLE_KEY")
-            val mercadoPagoPublicKey = localOrProjectProperty("MERCADOPAGO_PUBLIC_KEY")
+            val paymentProvider = localOrProjectProperty("PAYMENT_PROVIDER", "stripe")
+            val stripePublishableKey = localOrProjectProperty("STRIPE_PUBLISHABLE_KEY", "pk_test_51THZfYRY7KewwenDlZH97Z6WCOrWElZSr1oGrVxwRR4CrUIorUX2FiElUf6mwG5DdWJEvyWvUCDIZZih6LpNkvac00ZfRY0czV")
             buildConfigField("String", "API_BASE_URL", "\"$apiBaseUrl\"")
             buildConfigField("String", "PAYMENT_PROVIDER", "\"$paymentProvider\"")
             buildConfigField("String", "STRIPE_PUBLISHABLE_KEY", "\"$stripePublishableKey\"")
-            buildConfigField("String", "MERCADOPAGO_PUBLIC_KEY", "\"$mercadoPagoPublicKey\"")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"

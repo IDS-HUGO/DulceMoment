@@ -28,6 +28,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.Alignment
@@ -51,6 +52,7 @@ import com.example.dulcemoment.ui.screens.OrderStatusStepper
 import com.example.dulcemoment.ui.screens.RegisterGlassScreen
 import com.example.dulcemoment.ui.screens.SellerModuleScreen
 import com.example.dulcemoment.ui.state.UiState
+import com.example.dulcemoment.ui.theme.ThemeConstants
 
 private object Routes {
     const val Login = "auth/login"
@@ -590,38 +592,64 @@ private fun OrderDetailScreen(
     onStageUpdate: (Int, String) -> Unit,
     onDiagnosePayment: (Int) -> Unit,
 ) {
-    var cardNumber by remember { mutableStateOf("4242 4242 4242 4242") }
-    var cardName by remember { mutableStateOf("Cliente Demo") }
-    var cvv by remember { mutableStateOf("123") }
-    var expiry by remember { mutableStateOf("12/30") }
+    var cardNumber by rememberSaveable { mutableStateOf("4242 4242 4242 4242") }
+    var cardName by rememberSaveable { mutableStateOf("Cliente Demo") }
+    var cvv by rememberSaveable { mutableStateOf("123") }
+    var expiry by rememberSaveable { mutableStateOf("12/30") }
 
-    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        Button(onClick = onBack) { Text("Volver") }
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Button(onClick = onBack) { Text("Volver") }
+            if (!isStore && order != null) {
+                Button(onClick = onBack) { Text("Cancelar pago") }
+            }
+        }
         if (order == null) {
             Text("Pedido no encontrado")
             return
         }
 
-        Text("Pedido #${order.order.id}", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-        Text("Estado: ${order.order.status}")
-        OrderStatusStepper(currentStatus = order.order.status)
-        Text("Total: ${order.order.total}")
-        Text("Dirección: ${order.order.deliveryAddress}")
-
-        Text("Items", fontWeight = FontWeight.SemiBold)
-        order.items.forEach { item ->
-            Text("• Producto ${item.productId} - ${item.unitPrice}")
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(containerColor = ThemeConstants.SurfaceLight),
+        ) {
+            Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text("Pedido #${order.order.id}", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                Text("Estado: ${order.order.status}")
+                OrderStatusStepper(currentStatus = order.order.status)
+                Text("Total: ${order.order.total}")
+                Text("Dirección: ${order.order.deliveryAddress}")
+            }
         }
 
-        Text("Tracking", fontWeight = FontWeight.SemiBold)
-        order.events.sortedBy { it.id }.forEach { event ->
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
-            ) {
-                Column(modifier = Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                    Text(event.status, fontWeight = FontWeight.SemiBold)
-                    Text(event.message)
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(containerColor = ThemeConstants.SurfaceLight),
+        ) {
+            Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text("Items", fontWeight = FontWeight.SemiBold)
+                order.items.forEach { item ->
+                    Text("• Producto ${item.productId} - ${item.unitPrice}")
+                }
+            }
+        }
+
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(containerColor = ThemeConstants.SurfaceLight),
+        ) {
+            Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text("Tracking", fontWeight = FontWeight.SemiBold)
+                order.events.sortedBy { it.id }.forEach { event ->
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
+                    ) {
+                        Column(modifier = Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                            Text(event.status, fontWeight = FontWeight.SemiBold)
+                            Text(event.message)
+                        }
+                    }
                 }
             }
         }
@@ -636,12 +664,52 @@ private fun OrderDetailScreen(
                 Button(onClick = { onStageUpdate(order.order.id, "delivered") }) { Text("Entregar") }
             }
         } else {
-            OutlinedTextField(value = cardNumber, onValueChange = { cardNumber = it }, label = { Text("Número tarjeta") }, modifier = Modifier.fillMaxWidth())
-            OutlinedTextField(value = cardName, onValueChange = { cardName = it }, label = { Text("Titular") }, modifier = Modifier.fillMaxWidth())
-            OutlinedTextField(value = cvv, onValueChange = { cvv = it }, label = { Text("CVV") }, modifier = Modifier.fillMaxWidth())
-            OutlinedTextField(value = expiry, onValueChange = { expiry = it }, label = { Text("Exp MM/YY") }, modifier = Modifier.fillMaxWidth())
-            Button(onClick = { onPay(order.order.id, cardNumber, cardName, cvv, expiry) }) { Text("Pagar pedido") }
-            Button(onClick = { onDiagnosePayment(order.order.id) }) { Text("Diagnóstico de pago") }
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(containerColor = ThemeConstants.SurfaceLight),
+            ) {
+                Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Text("Pago seguro", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                    Text("Completa los datos de la tarjeta para confirmar el pedido.", color = ThemeConstants.TextMedium)
+                    OutlinedTextField(
+                        value = cardNumber,
+                        onValueChange = { value -> cardNumber = value.filter { character -> character.isDigit() || character == ' ' }.take(19) },
+                        label = { Text("Número de tarjeta") },
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                    OutlinedTextField(
+                        value = cardName,
+                        onValueChange = { value -> cardName = value },
+                        label = { Text("Titular") },
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        OutlinedTextField(
+                            value = cvv,
+                            onValueChange = { value -> cvv = value.filter(Char::isDigit).take(4) },
+                            label = { Text("CVV") },
+                            modifier = Modifier.weight(1f),
+                        )
+                        OutlinedTextField(
+                            value = expiry,
+                            onValueChange = { value -> expiry = value.filter { character -> character.isDigit() || character == '/' }.take(5) },
+                            label = { Text("MM/AA") },
+                            modifier = Modifier.weight(1f),
+                        )
+                    }
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Button(
+                            onClick = { onPay(order.order.id, cardNumber, cardName, cvv, expiry) },
+                            modifier = Modifier.weight(1f),
+                        ) { Text("Pagar pedido") }
+                        Button(
+                            onClick = onBack,
+                            modifier = Modifier.weight(1f),
+                        ) { Text("Cancelar") }
+                    }
+                    Button(onClick = { onDiagnosePayment(order.order.id) }) { Text("Diagnóstico de pago") }
+                }
+            }
         }
     }
 }
