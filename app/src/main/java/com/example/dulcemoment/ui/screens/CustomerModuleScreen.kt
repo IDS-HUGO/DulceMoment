@@ -4,7 +4,6 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -801,9 +800,8 @@ private fun CheckoutBottomSheet(
     var cvv by rememberSaveable { mutableStateOf("") }
     var expiry by rememberSaveable { mutableStateOf("") }
 
-    val maskedCard = remember(cardNumber) { maskCardNumber(cardNumber) }
     val maskedExp = remember(expiry) { maskExpiry(expiry) }
-    val cardValid = maskedCard.filter { it.isDigit() }.length == 16
+    val cardValid = cardNumber.length == 16
     val holderValid = holderName.trim().length >= 3
     val cvvValid = cvv.length in 3..4
     val expValid = maskedExp.length == 5
@@ -815,14 +813,12 @@ private fun CheckoutBottomSheet(
         ) {
             Text("Checkout", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
             OutlinedTextField(
-                value = maskedCard,
+                value = cardNumber,
                 onValueChange = { cardNumber = it.filter(Char::isDigit).take(16) },
                 label = { Text("Número de tarjeta") },
-                isError = !cardValid && maskedCard.isNotBlank(),
-                supportingText = { if (!cardValid && maskedCard.isNotBlank()) Text("Formato 16 dígitos") },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .border(1.dp, if (cardValid) Color.Gray else Color.Red, RoundedCornerShape(8.dp)),
+                isError = !cardValid && cardNumber.isNotBlank(),
+                supportingText = { if (!cardValid && cardNumber.isNotBlank()) Text("Formato 16 dígitos") },
+                modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp),
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
@@ -841,6 +837,7 @@ private fun CheckoutBottomSheet(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp),
                 singleLine = true,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
             )
             OutlinedTextField(
                 value = holderName,
@@ -860,11 +857,12 @@ private fun CheckoutBottomSheet(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp),
                 singleLine = true,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             )
             Button(
                 onClick = {
                     if (orderId != null) {
-                        onPay(orderId, maskedCard, holderName.trim(), cvv, maskedExp)
+                        onPay(orderId, cardNumber, holderName.trim(), cvv, maskedExp)
                         onDismiss()
                     }
                 },
