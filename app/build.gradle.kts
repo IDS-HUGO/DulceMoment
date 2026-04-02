@@ -49,7 +49,7 @@ android {
             val paymentProvider = localOrProjectProperty("PAYMENT_PROVIDER", "stripe")
             val stripePublishableKey = localOrProjectProperty("STRIPE_PUBLISHABLE_KEY", "pk_test_51THZfYRY7KewwenDlZH97Z6WCOrWElZSr1oGrVxwRR4CrUIorUX2FiElUf6mwG5DdWJEvyWvUCDIZZih6LpNkvac00ZfRY0czV")
             buildConfigField("String", "API_BASE_URL", "\"$apiBaseUrl\"")
-            buildConfigField("String", "PAYMENT_PROVIDER", "\"$paymentProvider\"")
+            buildConfigField("String", "PAYMENT_PROVIDER", "\"stripe\"")
             buildConfigField("String", "STRIPE_PUBLISHABLE_KEY", "\"$stripePublishableKey\"")
         }
         release {
@@ -58,7 +58,7 @@ android {
             val paymentProvider = localOrProjectProperty("PAYMENT_PROVIDER", "stripe")
             val stripePublishableKey = localOrProjectProperty("STRIPE_PUBLISHABLE_KEY", "pk_test_51THZfYRY7KewwenDlZH97Z6WCOrWElZSr1oGrVxwRR4CrUIorUX2FiElUf6mwG5DdWJEvyWvUCDIZZih6LpNkvac00ZfRY0czV")
             buildConfigField("String", "API_BASE_URL", "\"$apiBaseUrl\"")
-            buildConfigField("String", "PAYMENT_PROVIDER", "\"$paymentProvider\"")
+            buildConfigField("String", "PAYMENT_PROVIDER", "\"stripe\"")
             buildConfigField("String", "STRIPE_PUBLISHABLE_KEY", "\"$stripePublishableKey\"")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),

@@ -482,14 +482,7 @@ class LocalDulceRepository @Inject constructor(
         securityCode: String,
         expiry: String,
     ): Result<String> {
-        val provider = BuildConfig.PAYMENT_PROVIDER.lowercase()
-
-        // Stripe es el único provider soportado
-        if (BuildConfig.STRIPE_PUBLISHABLE_KEY.isBlank()) {
-            return Result.failure(
-                IllegalStateException("Falta STRIPE_PUBLISHABLE_KEY. Configúrala en propiedades de Gradle para habilitar pagos.")
-            )
-        }
+        val provider = "stripe"
 
         val digits = cardNumber.filter { it.isDigit() }
         if (digits.length !in 13..19 || cardName.isBlank() || !isValidCardNumber(digits)) {

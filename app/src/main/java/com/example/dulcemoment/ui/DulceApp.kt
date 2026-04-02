@@ -584,6 +584,12 @@ private fun StoreSection(
 }
 
 @Composable
+
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import com.example.dulcemoment.ui.screens.OrderSummaryCard
+
+@Composable
 private fun OrderDetailScreen(
     order: OrderWithDetails?,
     isStore: Boolean,
@@ -592,12 +598,19 @@ private fun OrderDetailScreen(
     onStageUpdate: (Int, String) -> Unit,
     onDiagnosePayment: (Int) -> Unit,
 ) {
-    var cardNumber by rememberSaveable { mutableStateOf("4242 4242 4242 4242") }
-    var cardName by rememberSaveable { mutableStateOf("Cliente Demo") }
-    var cvv by rememberSaveable { mutableStateOf("123") }
-    var expiry by rememberSaveable { mutableStateOf("12/30") }
+    var cardNumber by rememberSaveable { mutableStateOf("") }
+    var cardName by rememberSaveable { mutableStateOf("") }
+    var cvv by rememberSaveable { mutableStateOf("") }
+    var expiry by rememberSaveable { mutableStateOf("") }
+    val scrollState = rememberScrollState()
 
-    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(scrollState)
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             Button(onClick = onBack) { Text("Volver") }
             if (!isStore && order != null) {
@@ -609,19 +622,19 @@ private fun OrderDetailScreen(
             return
         }
 
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            colors = CardDefaults.cardColors(containerColor = ThemeConstants.SurfaceLight),
-        ) {
-            Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("Pedido #${order.order.id}", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-                Text("Estado: ${order.order.status}")
-                OrderStatusStepper(currentStatus = order.order.status)
-                Text("Total: ${order.order.total}")
-                Text("Dirección: ${order.order.deliveryAddress}")
-            }
-        }
+        // Resumen profesional
+        OrderSummaryCard(
+            productName = order.items.firstOrNull()?.productName ?: "Producto",
+            quantity = order.items.sumOf { it.quantity },
+            price = "$${"%.2f".format(order.order.total)}",
+            customizations = listOf(
+                "Estado" to order.order.status,
+                "Dirección" to order.order.deliveryAddress
+            ),
+            deliveryAddress = order.order.deliveryAddress
+        )
 
+        // Items
         Card(
             modifier = Modifier.fillMaxWidth(),
             colors = CardDefaults.cardColors(containerColor = ThemeConstants.SurfaceLight),
@@ -629,11 +642,12 @@ private fun OrderDetailScreen(
             Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text("Items", fontWeight = FontWeight.SemiBold)
                 order.items.forEach { item ->
-                    Text("• Producto ${item.productId} - ${item.unitPrice}")
+                    Text("• ${item.productName} x${item.quantity} - $${"%.2f".format(item.unitPrice)}")
                 }
             }
         }
 
+        // Tracking
         Card(
             modifier = Modifier.fillMaxWidth(),
             colors = CardDefaults.cardColors(containerColor = ThemeConstants.SurfaceLight),
@@ -654,6 +668,7 @@ private fun OrderDetailScreen(
             }
         }
 
+        // Acciones para tienda
         if (isStore) {
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Button(onClick = { onStageUpdate(order.order.id, "in_oven") }) { Text("Horno") }
@@ -664,6 +679,7 @@ private fun OrderDetailScreen(
                 Button(onClick = { onStageUpdate(order.order.id, "delivered") }) { Text("Entregar") }
             }
         } else {
+            // Sección de pago mejorada
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(containerColor = ThemeConstants.SurfaceLight),
@@ -676,12 +692,28 @@ private fun OrderDetailScreen(
                         onValueChange = { value -> cardNumber = value.filter { character -> character.isDigit() || character == ' ' }.take(19) },
                         label = { Text("Número de tarjeta") },
                         modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(16.dp),
+                        singleLine = true,
+                        colors = OutlinedTextFieldDefaults.colors(
+                            unfocusedBorderColor = MaterialTheme.colorScheme.secondary,
+                            focusedBorderColor = MaterialTheme.colorScheme.primary,
+                            unfocusedLabelColor = MaterialTheme.colorScheme.secondary,
+                            focusedLabelColor = MaterialTheme.colorScheme.primary,
+                        ),
                     )
                     OutlinedTextField(
                         value = cardName,
                         onValueChange = { value -> cardName = value },
                         label = { Text("Titular") },
                         modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(16.dp),
+                        singleLine = true,
+                        colors = OutlinedTextFieldDefaults.colors(
+                            unfocusedBorderColor = MaterialTheme.colorScheme.secondary,
+                            focusedBorderColor = MaterialTheme.colorScheme.primary,
+                            unfocusedLabelColor = MaterialTheme.colorScheme.secondary,
+                            focusedLabelColor = MaterialTheme.colorScheme.primary,
+                        ),
                     )
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         OutlinedTextField(
@@ -689,12 +721,28 @@ private fun OrderDetailScreen(
                             onValueChange = { value -> cvv = value.filter(Char::isDigit).take(4) },
                             label = { Text("CVV") },
                             modifier = Modifier.weight(1f),
+                            shape = RoundedCornerShape(16.dp),
+                            singleLine = true,
+                            colors = OutlinedTextFieldDefaults.colors(
+                                unfocusedBorderColor = MaterialTheme.colorScheme.secondary,
+                                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                                unfocusedLabelColor = MaterialTheme.colorScheme.secondary,
+                                focusedLabelColor = MaterialTheme.colorScheme.primary,
+                            ),
                         )
                         OutlinedTextField(
                             value = expiry,
                             onValueChange = { value -> expiry = value.filter { character -> character.isDigit() || character == '/' }.take(5) },
                             label = { Text("MM/AA") },
                             modifier = Modifier.weight(1f),
+                            shape = RoundedCornerShape(16.dp),
+                            singleLine = true,
+                            colors = OutlinedTextFieldDefaults.colors(
+                                unfocusedBorderColor = MaterialTheme.colorScheme.secondary,
+                                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                                unfocusedLabelColor = MaterialTheme.colorScheme.secondary,
+                                focusedLabelColor = MaterialTheme.colorScheme.primary,
+                            ),
                         )
                     }
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -707,7 +755,10 @@ private fun OrderDetailScreen(
                             modifier = Modifier.weight(1f),
                         ) { Text("Cancelar") }
                     }
-                    Button(onClick = { onDiagnosePayment(order.order.id) }) { Text("Diagnóstico de pago") }
+                    // Diagnóstico de pago SIEMPRE visible
+                    Button(onClick = { onDiagnosePayment(order.order.id) }, modifier = Modifier.fillMaxWidth()) {
+                        Text("Diagnóstico de pago")
+                    }
                 }
             }
         }
