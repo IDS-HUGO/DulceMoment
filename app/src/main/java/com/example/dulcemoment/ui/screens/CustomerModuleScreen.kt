@@ -4,6 +4,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -52,7 +53,9 @@ import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.example.dulcemoment.data.local.OrderWithDetails
@@ -814,12 +817,21 @@ private fun CheckoutBottomSheet(
             OutlinedTextField(
                 value = maskedCard,
                 onValueChange = { cardNumber = it.filter(Char::isDigit).take(16) },
-                label = { Text("Número") },
+                label = { Text("Número de tarjeta") },
                 isError = !cardValid && maskedCard.isNotBlank(),
                 supportingText = { if (!cardValid && maskedCard.isNotBlank()) Text("Formato 16 dígitos") },
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .border(1.dp, if (cardValid) Color.Gray else Color.Red, RoundedCornerShape(8.dp)),
                 shape = RoundedCornerShape(16.dp),
                 singleLine = true,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                colors = OutlinedTextFieldDefaults.colors(
+                    unfocusedBorderColor = MaterialTheme.colorScheme.secondary,
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                    unfocusedLabelColor = MaterialTheme.colorScheme.secondary,
+                    focusedLabelColor = MaterialTheme.colorScheme.primary,
+                ),
             )
             OutlinedTextField(
                 value = cvv,

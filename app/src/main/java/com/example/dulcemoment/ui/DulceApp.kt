@@ -43,8 +43,14 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import coil.compose.AsyncImage
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import com.example.dulcemoment.data.local.OrderWithDetails
 import com.example.dulcemoment.data.local.ProductWithOptions
+import com.example.dulcemoment.ui.screens.OrderSummaryCard
+
 import com.example.dulcemoment.ui.screens.CustomerModuleScreen
 import com.example.dulcemoment.ui.screens.ErrorStateScreen
 import com.example.dulcemoment.ui.screens.LoginGlassScreen
@@ -216,10 +222,11 @@ fun DulceApp(
                 OrderDetailScreen(
                     order = order,
                     isStore = uiState.currentUser?.role == "store",
+                    products = uiState.products,
+                    onPay = { id: Int, card: String, name: String, cvv: String, exp: String -> viewModel.payOrder(id, card, name, cvv, exp) },
+                    onStageUpdate = { id: Int, status: String -> viewModel.advanceOrder(id, status) },
+                    onDiagnosePayment = { id: Int -> viewModel.diagnosePayment(id) },
                     onBack = { navController.popBackStack() },
-                    onPay = { id, card, name, cvv, exp -> viewModel.payOrder(id, card, name, cvv, exp) },
-                    onStageUpdate = { id, status -> viewModel.advanceOrder(id, status) },
-                    onDiagnosePayment = viewModel::diagnosePayment,
                 )
             }
                 }
@@ -584,15 +591,10 @@ private fun StoreSection(
 }
 
 @Composable
-
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
-import com.example.dulcemoment.ui.screens.OrderSummaryCard
-
-@Composable
-private fun OrderDetailScreen(
+fun OrderDetailScreen(
     order: OrderWithDetails?,
     isStore: Boolean,
+    products: List<ProductWithOptions>,
     onBack: () -> Unit,
     onPay: (Int, String, String, String, String) -> Unit,
     onStageUpdate: (Int, String) -> Unit,
@@ -619,14 +621,17 @@ private fun OrderDetailScreen(
         }
         if (order == null) {
             Text("Pedido no encontrado")
-            return
+            return@Column
         }
 
-        // Resumen profesional
+        val productName = order.items.firstOrNull()?.let { item ->
+            products.firstOrNull { it.product.id == item.productId }?.product?.name ?: "Producto"
+        } ?: "Producto"
+        
         OrderSummaryCard(
-            productName = order.items.firstOrNull()?.productName ?: "Producto",
+            productName = productName,
             quantity = order.items.sumOf { it.quantity },
-            price = "$${"%.2f".format(order.order.total)}",
+            price = "$${String.format("%.2f", order.order.total)}",
             customizations = listOf(
                 "Estado" to order.order.status,
                 "Dirección" to order.order.deliveryAddress
@@ -634,7 +639,6 @@ private fun OrderDetailScreen(
             deliveryAddress = order.order.deliveryAddress
         )
 
-        // Items
         Card(
             modifier = Modifier.fillMaxWidth(),
             colors = CardDefaults.cardColors(containerColor = ThemeConstants.SurfaceLight),
@@ -642,12 +646,12 @@ private fun OrderDetailScreen(
             Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text("Items", fontWeight = FontWeight.SemiBold)
                 order.items.forEach { item ->
-                    Text("• ${item.productName} x${item.quantity} - $${"%.2f".format(item.unitPrice)}")
+                    val prodName = products.firstOrNull { it.product.id == item.productId }?.product?.name ?: "Producto"
+                    Text("• $prodName x${item.quantity} - $${String.format("%.2f", item.unitPrice)}")
                 }
             }
         }
 
-        // Tracking
         Card(
             modifier = Modifier.fillMaxWidth(),
             colors = CardDefaults.cardColors(containerColor = ThemeConstants.SurfaceLight),
@@ -668,7 +672,6 @@ private fun OrderDetailScreen(
             }
         }
 
-        // Acciones para tienda
         if (isStore) {
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Button(onClick = { onStageUpdate(order.order.id, "in_oven") }) { Text("Horno") }
@@ -679,7 +682,6 @@ private fun OrderDetailScreen(
                 Button(onClick = { onStageUpdate(order.order.id, "delivered") }) { Text("Entregar") }
             }
         } else {
-            // Sección de pago mejorada
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(containerColor = ThemeConstants.SurfaceLight),
@@ -689,7 +691,7 @@ private fun OrderDetailScreen(
                     Text("Completa los datos de la tarjeta para confirmar el pedido.", color = ThemeConstants.TextMedium)
                     OutlinedTextField(
                         value = cardNumber,
-                        onValueChange = { value -> cardNumber = value.filter { character -> character.isDigit() || character == ' ' }.take(19) },
+                        onValueChange = { value -> cardNumber = value.filter { it.isDigit() || it == ' ' }.take(19) },
                         label = { Text("Número de tarjeta") },
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(16.dp),
@@ -718,7 +720,7 @@ private fun OrderDetailScreen(
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         OutlinedTextField(
                             value = cvv,
-                            onValueChange = { value -> cvv = value.filter(Char::isDigit).take(4) },
+                            onValueChange = { value -> cvv = value.filter { it.isDigit() }.take(4) },
                             label = { Text("CVV") },
                             modifier = Modifier.weight(1f),
                             shape = RoundedCornerShape(16.dp),
@@ -732,7 +734,7 @@ private fun OrderDetailScreen(
                         )
                         OutlinedTextField(
                             value = expiry,
-                            onValueChange = { value -> expiry = value.filter { character -> character.isDigit() || character == '/' }.take(5) },
+                            onValueChange = { value -> expiry = value.filter { it.isDigit() || it == '/' }.take(5) },
                             label = { Text("MM/AA") },
                             modifier = Modifier.weight(1f),
                             shape = RoundedCornerShape(16.dp),
@@ -755,7 +757,6 @@ private fun OrderDetailScreen(
                             modifier = Modifier.weight(1f),
                         ) { Text("Cancelar") }
                     }
-                    // Diagnóstico de pago SIEMPRE visible
                     Button(onClick = { onDiagnosePayment(order.order.id) }, modifier = Modifier.fillMaxWidth()) {
                         Text("Diagnóstico de pago")
                     }
@@ -766,7 +767,7 @@ private fun OrderDetailScreen(
 }
 
 @Composable
-private fun OrderStatusTimeline(currentStatus: String) {
+fun OrderStatusTimeline(currentStatus: String) {
     val stages = listOf("created", "in_oven", "decorating", "on_the_way", "delivered")
     val labels = mapOf(
         "created" to "Confirmado",
@@ -800,7 +801,7 @@ private fun OrderStatusTimeline(currentStatus: String) {
 }
 
 @Composable
-private fun ProductCard(
+fun ProductCard(
     product: ProductWithOptions,
     onChoose: () -> Unit,
 ) {

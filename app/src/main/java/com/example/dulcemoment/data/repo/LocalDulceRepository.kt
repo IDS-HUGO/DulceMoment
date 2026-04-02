@@ -16,7 +16,6 @@ import com.example.dulcemoment.data.local.TrackingEventEntity
 import com.example.dulcemoment.data.local.UserEntity
 import com.example.dulcemoment.data.network.ApiService
 import com.example.dulcemoment.data.network.AuthRequest
-import com.example.dulcemoment.data.network.CardPaymentRequest
 import com.example.dulcemoment.data.network.CloudinaryUploadRequest
 import com.example.dulcemoment.data.network.CreateOrderRequest
 import com.example.dulcemoment.data.network.CreateProductRequest
@@ -27,9 +26,12 @@ import com.example.dulcemoment.data.network.RetrofitClient
 import com.example.dulcemoment.data.network.RefreshTokenRequest
 import com.example.dulcemoment.data.network.UpdateOrderStatusRequest
 import com.example.dulcemoment.data.network.UpdateProductRequest
+import com.stripe.android.Stripe
+import com.stripe.android.model.PaymentMethodCreateParams
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -37,6 +39,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.toRequestBody
@@ -51,6 +54,7 @@ class LocalDulceRepository @Inject constructor(
     @param:ApplicationContext private val context: Context,
     private val apiService: ApiService = RetrofitClient.api,
 ) : CakeRepository {
+    private val stripeClient by lazy { Stripe(context.applicationContext, BuildConfig.STRIPE_PUBLISHABLE_KEY) }
     private val sessionStore = SessionStore(context.applicationContext)
     private val sessionState = MutableStateFlow<UserEntity?>(sessionStore.loadUser())
     private val productsState = MutableStateFlow<List<ProductWithOptions>>(emptyList())
@@ -486,41 +490,50 @@ class LocalDulceRepository @Inject constructor(
 
         val digits = cardNumber.filter { it.isDigit() }
         if (digits.length !in 13..19 || cardName.isBlank() || !isValidCardNumber(digits)) {
-            return Result.failure(IllegalArgumentException("Tarjeta inválida"))
+            return Result.failure(IllegalArgumentException("Tarjeta invalida"))
         }
         val cvv = securityCode.filter { it.isDigit() }
         if (cvv.length !in 3..4) {
-            return Result.failure(IllegalArgumentException("CVV inválido"))
+            return Result.failure(IllegalArgumentException("CVV invalido"))
         }
 
         val expiryDigits = expiry.filter { it.isDigit() }
         if (expiryDigits.length != 4) {
-            return Result.failure(IllegalArgumentException("Fecha de expiración inválida"))
+            return Result.failure(IllegalArgumentException("Fecha de expiracion invalida"))
         }
         val month = expiryDigits.take(2).toIntOrNull() ?: 0
         val yearTwoDigits = expiryDigits.takeLast(2).toIntOrNull() ?: -1
         if (month !in 1..12 || yearTwoDigits !in 0..99) {
-            return Result.failure(IllegalArgumentException("Fecha de expiración inválida"))
+            return Result.failure(IllegalArgumentException("Fecha de expiracion invalida"))
         }
         val year = 2000 + yearTwoDigits
 
         return runCatching {
+            val paymentMethodId = withContext(Dispatchers.IO) {
+                val paymentMethodParams = PaymentMethodCreateParams.create(
+                    PaymentMethodCreateParams.Card.Builder()
+                        .setNumber(digits)
+                        .setExpiryMonth(month)
+                        .setExpiryYear(year)
+                        .setCvc(cvv)
+                        .build()
+                )
+                stripeClient.createPaymentMethodSynchronous(paymentMethodParams).id
+                    ?: throw IllegalStateException("No se pudo crear el metodo de pago")
+            }
+
             val response = apiCallWithRefresh { token ->
                 apiService.payCard(
                     token,
                     provider,
-                    CardPaymentRequest(
-                        order_id = orderId,
-                        card_number = cardNumber,
-                        holder_name = cardName,
-                        security_code = cvv,
-                        expiry_month = month,
-                        expiry_year = year,
+                    mapOf(
+                        "order_id" to orderId.toString(),
+                        "payment_method_id" to paymentMethodId,
                     )
                 )
             }
 
-            val approvedByFlag = when (val raw = response["approved"] ?: response["success"] ?: response["ok"]) {
+            val approvedByFlag = when (val raw = response["ok"] ?: response["approved"] ?: response["success"]) {
                 is Boolean -> raw
                 is Number -> raw.toInt() != 0
                 is String -> raw.equals("true", ignoreCase = true) || raw == "1"
@@ -529,7 +542,6 @@ class LocalDulceRepository @Inject constructor(
             val status = (response["status"]?.toString() ?: "").lowercase()
             val approvedByStatus = status in setOf("approved", "paid", "success", "succeeded")
             val message = response["message"]?.toString()?.takeIf { it.isNotBlank() }
-            val transactionId = response["transaction_id"]?.toString()?.takeIf { it.isNotBlank() }
 
             if (!approvedByFlag && !approvedByStatus) {
                 throw IllegalStateException(message ?: "Pago rechazado por la pasarela")
@@ -538,7 +550,6 @@ class LocalDulceRepository @Inject constructor(
             refreshOrders()
             val last4 = digits.takeLast(4)
             when {
-                !transactionId.isNullOrBlank() -> "Pago aprobado • TX: $transactionId • ****$last4"
                 !message.isNullOrBlank() -> "$message • ****$last4"
                 else -> "Pago aprobado • ****$last4"
             }

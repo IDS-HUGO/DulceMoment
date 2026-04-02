@@ -90,11 +90,17 @@ interface ApiService {
         @Body body: UpdateOrderStatusRequest,
     ): OrderDto
 
+    @POST("api/v1/payments/create-payment-method")
+    suspend fun createPaymentMethod(
+        @Header("Authorization") authHeader: String,
+        @Body body: Map<String, String>,
+    ): Map<String, Any>
+
     @POST("api/v1/payments/card")
     suspend fun payCard(
         @Header("Authorization") authHeader: String,
         @Header("X-Payment-Provider") provider: String,
-        @Body body: CardPaymentRequest,
+        @Body body: Map<String, String>,
     ): Map<String, Any>
 
     @GET("api/v1/payments/{orderId}/diagnostics")
