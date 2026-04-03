@@ -108,10 +108,4 @@ interface ApiService {
         @Header("Authorization") authHeader: String,
         @Path("orderId") orderId: Int,
     ): Map<String, Any>
-
-    @POST("api/v1/notifications/device-token")
-    suspend fun registerDeviceToken(
-        @Header("Authorization") authHeader: String,
-        @Body body: DeviceTokenRequest,
-    ): Map<String, Any>
 }

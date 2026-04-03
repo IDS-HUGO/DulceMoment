@@ -151,8 +151,3 @@ data class CardPaymentRequest(
     val expiry_month: Int,
     val expiry_year: Int,
 )
-
-data class DeviceTokenRequest(
-    val token: String,
-    val platform: String = "android",
-)

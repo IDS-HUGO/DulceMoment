@@ -9,7 +9,6 @@ import com.example.dulcemoment.data.local.PushAlertEntity
 import com.example.dulcemoment.data.local.UserEntity
 import com.example.dulcemoment.data.repo.AdminOrderSummary
 import com.example.dulcemoment.data.repo.CakeRepository
-import com.example.dulcemoment.notifications.PushTokenRegistrar
 import com.example.dulcemoment.ui.state.UiErrorType
 import com.example.dulcemoment.ui.state.UiState
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -23,8 +22,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 
 data class DulceUiState(
     val currentUser: UserEntity? = null,
@@ -74,17 +71,6 @@ class DulceViewModel @Inject constructor(
         viewModelScope.launch {
             repository.sessionFlow().collect { user ->
                 _uiState.update { it.copy(currentUser = user) }
-                if (user != null) {
-                    viewModelScope.launch {
-                        withContext(Dispatchers.IO) {
-                            val sessionStore = com.example.dulcemoment.data.repo.SessionStore(appContext)
-                            val cachedToken = sessionStore.loadFcmToken()
-                            if (!cachedToken.isNullOrBlank()) {
-                                PushTokenRegistrar.syncToken(appContext, cachedToken)
-                            }
-                        }
-                    }
-                }
                 subscribeRoleData(user)
             }
         }

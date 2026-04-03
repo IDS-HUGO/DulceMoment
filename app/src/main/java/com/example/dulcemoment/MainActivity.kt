@@ -13,13 +13,8 @@ import androidx.core.content.ContextCompat
 import com.example.dulcemoment.ui.DulceNotifier
 import com.example.dulcemoment.ui.theme.DulceMomentTheme
 import com.example.dulcemoment.ui.DulceApp
-import com.example.dulcemoment.notifications.PushTokenRegistrar
-import com.google.firebase.messaging.FirebaseMessaging
 import kotlinx.coroutines.flow.MutableStateFlow
 import androidx.compose.runtime.getValue
-import androidx.lifecycle.lifecycleScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -35,7 +30,6 @@ class MainActivity : ComponentActivity() {
         orderOpenRequest.value = extractOrderIdFromIntent()
         DulceNotifier(this).createChannelIfNeeded()
         requestNotificationPermissionIfNeeded()
-        requestAndSyncFcmToken()
         enableEdgeToEdge()
         setContent {
             val pendingOrderId by orderOpenRequest.collectAsStateWithLifecycle()
@@ -67,17 +61,6 @@ class MainActivity : ComponentActivity() {
         ) == PackageManager.PERMISSION_GRANTED
         if (!alreadyGranted) {
             notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
-        }
-    }
-
-    private fun requestAndSyncFcmToken() {
-        runCatching {
-            FirebaseMessaging.getInstance().token
-                .addOnSuccessListener { token ->
-                    lifecycleScope.launch(Dispatchers.IO) {
-                        PushTokenRegistrar.syncToken(applicationContext, token)
-                    }
-                }
         }
     }
 }

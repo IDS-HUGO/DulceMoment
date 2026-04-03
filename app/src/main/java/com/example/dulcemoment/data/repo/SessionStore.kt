@@ -61,25 +61,6 @@ class SessionStore(context: Context) {
             .apply()
     }
 
-    fun saveFcmToken(token: String) {
-        prefs.edit().putString("fcm_token", token).apply()
-    }
-
-    fun loadFcmToken(): String? = prefs.getString("fcm_token", null)
-
-    fun markFcmTokenSynced(userId: Int, token: String) {
-        prefs.edit()
-            .putInt("fcm_synced_user_id", userId)
-            .putString("fcm_synced_token", token)
-            .apply()
-    }
-
-    fun isFcmTokenSynced(userId: Int, token: String): Boolean {
-        val syncedUserId = prefs.getInt("fcm_synced_user_id", -1)
-        val syncedToken = prefs.getString("fcm_synced_token", null)
-        return syncedUserId == userId && syncedToken == token
-    }
-
     fun clear() {
         prefs.edit().clear().apply()
     }
