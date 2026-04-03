@@ -124,3 +124,13 @@ To receive real FCM pushes, Android project must include:
 - `app/google-services.json`
 
 Without that file, compile can still pass but real FCM delivery will not be operational.
+
+### Android setup checklist
+
+1. In Firebase Console, register Android app package: `com.example.dulcemoment`.
+2. Download `google-services.json`.
+3. Place it at: `app/google-services.json`.
+4. Rebuild the app.
+
+Note:
+- This project applies `com.google.gms.google-services` only if `app/google-services.json` exists, so local builds remain stable before Firebase credentials are added.
