@@ -128,7 +128,13 @@ fun DulceApp(
     ) { padding ->
         Box(modifier = Modifier.fillMaxSize().padding(padding)) {
             val currentScreenState = uiState.screenState
-            if (currentScreenState is UiState.Error) {
+            if (
+                currentScreenState is UiState.Error &&
+                currentScreenState.type !in setOf(
+                    com.example.dulcemoment.ui.state.UiErrorType.PAYMENT_REJECTED,
+                    com.example.dulcemoment.ui.state.UiErrorType.OUT_OF_STOCK,
+                )
+            ) {
                 ErrorStateScreen(
                     type = currentScreenState.type,
                     message = currentScreenState.message,
@@ -173,19 +179,21 @@ fun DulceApp(
                     products = uiState.products,
                     stockState = stockState,
                     orders = uiState.orders,
+                    paidOrderIds = uiState.paidOrderIds,
                     alerts = uiState.alerts.map { it.body },
                     customerName = uiState.currentUser?.name.orEmpty(),
                     customerEmail = uiState.currentUser?.email.orEmpty(),
                     sellerName = uiState.storeName,
                     sellerEmail = uiState.storeEmail,
+                    pendingPaymentOrderId = uiState.pendingPaymentOrderId,
                     onCreateOrder = { productId, quantity, ingredients, size, shape, flavor, color, address, notes ->
                         viewModel.createOrder(productId, quantity, ingredients, size, shape, flavor, color, address, notes)
                     },
                     onPay = viewModel::payOrder,
                     onUpdateProfile = viewModel::updateCustomerProfile,
+                    onPendingPaymentHandled = viewModel::consumePendingPaymentOrder,
                     onOpenOrder = { orderId -> navController.navigate(Routes.orderDetail(orderId)) },
                     onLogout = viewModel::logout,
-                    onLogoutAll = viewModel::logoutAllDevices,
                     onRefresh = viewModel::refreshDashboard,
                 )
             }
@@ -196,10 +204,7 @@ fun DulceApp(
                     stockState = stockState,
                     orders = uiState.orders,
                     adminSummary = uiState.adminSummary,
-                    suggestedImageUrl = uiState.suggestedImageUrl,
-                    onUploadImageFile = viewModel::uploadProductImage,
-                    onUploadImageUrl = viewModel::uploadProductImage,
-                    onAddProduct = viewModel::addProduct,
+                    onPublishProduct = viewModel::publishProduct,
                     onEditProduct = viewModel::updateProduct,
                     onDeleteProduct = viewModel::deleteProduct,
                     onLoadSummary = viewModel::loadAdminSummary,
@@ -208,7 +213,6 @@ fun DulceApp(
                     onStageUpdate = viewModel::advanceOrder,
                     onOpenOrder = { orderId -> navController.navigate(Routes.orderDetail(orderId)) },
                     onLogout = viewModel::logout,
-                    onLogoutAll = viewModel::logoutAllDevices,
                     onRefresh = viewModel::refreshDashboard,
                 )
             }
@@ -222,10 +226,10 @@ fun DulceApp(
                 OrderDetailScreen(
                     order = order,
                     isStore = uiState.currentUser?.role == "store",
+                    paymentAlreadyConfirmed = order?.order?.id?.let { it in uiState.paidOrderIds } == true,
                     products = uiState.products,
                     onPay = { id: Int, card: String, name: String, cvv: String, exp: String -> viewModel.payOrder(id, card, name, cvv, exp) },
                     onStageUpdate = { id: Int, status: String -> viewModel.advanceOrder(id, status) },
-                    onDiagnosePayment = { id: Int -> viewModel.diagnosePayment(id) },
                     onBack = { navController.popBackStack() },
                 )
             }
@@ -594,11 +598,11 @@ private fun StoreSection(
 fun OrderDetailScreen(
     order: OrderWithDetails?,
     isStore: Boolean,
+    paymentAlreadyConfirmed: Boolean,
     products: List<ProductWithOptions>,
     onBack: () -> Unit,
     onPay: (Int, String, String, String, String) -> Unit,
     onStageUpdate: (Int, String) -> Unit,
-    onDiagnosePayment: (Int) -> Unit,
 ) {
     var cardNumber by rememberSaveable { mutableStateOf("") }
     var cardName by rememberSaveable { mutableStateOf("") }
@@ -682,47 +686,20 @@ fun OrderDetailScreen(
                 Button(onClick = { onStageUpdate(order.order.id, "delivered") }) { Text("Entregar") }
             }
         } else {
+            val canPayThisOrder = !paymentAlreadyConfirmed && order.order.status == "created"
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(containerColor = ThemeConstants.SurfaceLight),
             ) {
                 Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     Text("Pago seguro", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-                    Text("Completa los datos de la tarjeta para confirmar el pedido.", color = ThemeConstants.TextMedium)
-                    OutlinedTextField(
-                        value = cardNumber,
-                        onValueChange = { value -> cardNumber = value.filter { it.isDigit() || it == ' ' }.take(19) },
-                        label = { Text("Número de tarjeta") },
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(16.dp),
-                        singleLine = true,
-                        colors = OutlinedTextFieldDefaults.colors(
-                            unfocusedBorderColor = MaterialTheme.colorScheme.secondary,
-                            focusedBorderColor = MaterialTheme.colorScheme.primary,
-                            unfocusedLabelColor = MaterialTheme.colorScheme.secondary,
-                            focusedLabelColor = MaterialTheme.colorScheme.primary,
-                        ),
-                    )
-                    OutlinedTextField(
-                        value = cardName,
-                        onValueChange = { value -> cardName = value },
-                        label = { Text("Titular") },
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(16.dp),
-                        singleLine = true,
-                        colors = OutlinedTextFieldDefaults.colors(
-                            unfocusedBorderColor = MaterialTheme.colorScheme.secondary,
-                            focusedBorderColor = MaterialTheme.colorScheme.primary,
-                            unfocusedLabelColor = MaterialTheme.colorScheme.secondary,
-                            focusedLabelColor = MaterialTheme.colorScheme.primary,
-                        ),
-                    )
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    if (canPayThisOrder) {
+                        Text("Completa los datos de la tarjeta para confirmar el pedido.", color = ThemeConstants.TextMedium)
                         OutlinedTextField(
-                            value = cvv,
-                            onValueChange = { value -> cvv = value.filter { it.isDigit() }.take(4) },
-                            label = { Text("CVV") },
-                            modifier = Modifier.weight(1f),
+                            value = cardNumber,
+                            onValueChange = { value -> cardNumber = value.filter { it.isDigit() || it == ' ' }.take(19) },
+                            label = { Text("Número de tarjeta") },
+                            modifier = Modifier.fillMaxWidth(),
                             shape = RoundedCornerShape(16.dp),
                             singleLine = true,
                             colors = OutlinedTextFieldDefaults.colors(
@@ -733,10 +710,10 @@ fun OrderDetailScreen(
                             ),
                         )
                         OutlinedTextField(
-                            value = expiry,
-                            onValueChange = { value -> expiry = value.filter { it.isDigit() || it == '/' }.take(5) },
-                            label = { Text("MM/AA") },
-                            modifier = Modifier.weight(1f),
+                            value = cardName,
+                            onValueChange = { value -> cardName = value },
+                            label = { Text("Titular") },
+                            modifier = Modifier.fillMaxWidth(),
                             shape = RoundedCornerShape(16.dp),
                             singleLine = true,
                             colors = OutlinedTextFieldDefaults.colors(
@@ -746,19 +723,52 @@ fun OrderDetailScreen(
                                 focusedLabelColor = MaterialTheme.colorScheme.primary,
                             ),
                         )
-                    }
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Button(
-                            onClick = { onPay(order.order.id, cardNumber, cardName, cvv, expiry) },
-                            modifier = Modifier.weight(1f),
-                        ) { Text("Pagar pedido") }
-                        Button(
-                            onClick = onBack,
-                            modifier = Modifier.weight(1f),
-                        ) { Text("Cancelar") }
-                    }
-                    Button(onClick = { onDiagnosePayment(order.order.id) }, modifier = Modifier.fillMaxWidth()) {
-                        Text("Diagnóstico de pago")
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            OutlinedTextField(
+                                value = cvv,
+                                onValueChange = { value -> cvv = value.filter { it.isDigit() }.take(4) },
+                                label = { Text("CVV") },
+                                modifier = Modifier.weight(1f),
+                                shape = RoundedCornerShape(16.dp),
+                                singleLine = true,
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    unfocusedBorderColor = MaterialTheme.colorScheme.secondary,
+                                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                                    unfocusedLabelColor = MaterialTheme.colorScheme.secondary,
+                                    focusedLabelColor = MaterialTheme.colorScheme.primary,
+                                ),
+                            )
+                            OutlinedTextField(
+                                value = expiry,
+                                onValueChange = { value -> expiry = value.filter { it.isDigit() || it == '/' }.take(5) },
+                                label = { Text("MM/AA") },
+                                modifier = Modifier.weight(1f),
+                                shape = RoundedCornerShape(16.dp),
+                                singleLine = true,
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    unfocusedBorderColor = MaterialTheme.colorScheme.secondary,
+                                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                                    unfocusedLabelColor = MaterialTheme.colorScheme.secondary,
+                                    focusedLabelColor = MaterialTheme.colorScheme.primary,
+                                ),
+                            )
+                        }
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Button(
+                                onClick = { onPay(order.order.id, cardNumber, cardName, cvv, expiry) },
+                                modifier = Modifier.weight(1f),
+                            ) { Text("Pagar pedido") }
+                            Button(
+                                onClick = onBack,
+                                modifier = Modifier.weight(1f),
+                            ) { Text("Cancelar") }
+                        }
+                    } else {
+                        Text(
+                            text = if (paymentAlreadyConfirmed) "Pago confirmado. Tu pedido está en preparación y seguimiento."
+                            else "Este pedido ya no requiere pago en línea.",
+                            color = ThemeConstants.TextMedium,
+                        )
                     }
                 }
             }

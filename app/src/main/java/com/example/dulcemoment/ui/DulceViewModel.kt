@@ -9,6 +9,7 @@ import com.example.dulcemoment.data.local.PushAlertEntity
 import com.example.dulcemoment.data.local.UserEntity
 import com.example.dulcemoment.data.repo.AdminOrderSummary
 import com.example.dulcemoment.data.repo.CakeRepository
+import com.example.dulcemoment.notifications.PushTokenRegistrar
 import com.example.dulcemoment.ui.state.UiErrorType
 import com.example.dulcemoment.ui.state.UiState
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -22,6 +23,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 data class DulceUiState(
     val currentUser: UserEntity? = null,
@@ -36,15 +39,17 @@ data class DulceUiState(
     val adminSummary: AdminOrderSummary? = null,
     val storeName: String = "DulceMoment",
     val storeEmail: String = "",
+    val pendingPaymentOrderId: Int? = null,
+    val paidOrderIds: Set<Int> = emptySet(),
     val screenState: UiState<Unit> = UiState.Success(Unit),
 )
 
 @HiltViewModel
 class DulceViewModel @Inject constructor(
     private val repository: CakeRepository,
-    @ApplicationContext applicationContext: android.content.Context,
+    @param:ApplicationContext private val appContext: android.content.Context,
 ) : ViewModel() {
-    private val notifier = DulceNotifier(applicationContext)
+    private val notifier = DulceNotifier(appContext)
 
     private val _uiState = MutableStateFlow(DulceUiState())
     val uiState: StateFlow<DulceUiState> = _uiState.asStateFlow()
@@ -69,6 +74,17 @@ class DulceViewModel @Inject constructor(
         viewModelScope.launch {
             repository.sessionFlow().collect { user ->
                 _uiState.update { it.copy(currentUser = user) }
+                if (user != null) {
+                    viewModelScope.launch {
+                        withContext(Dispatchers.IO) {
+                            val sessionStore = com.example.dulcemoment.data.repo.SessionStore(appContext)
+                            val cachedToken = sessionStore.loadFcmToken()
+                            if (!cachedToken.isNullOrBlank()) {
+                                PushTokenRegistrar.syncToken(appContext, cachedToken)
+                            }
+                        }
+                    }
+                }
                 subscribeRoleData(user)
             }
         }
@@ -91,14 +107,33 @@ class DulceViewModel @Inject constructor(
             alertsInitialized = false
             seenAlertIds.clear()
             lastKnownOrderStatus.clear()
-            _uiState.update { it.copy(orders = emptyList(), alerts = emptyList(), storeName = "DulceMoment", storeEmail = "") }
+            _uiState.update {
+                it.copy(
+                    orders = emptyList(),
+                    alerts = emptyList(),
+                    storeName = "DulceMoment",
+                    storeEmail = "",
+                    paidOrderIds = emptySet(),
+                )
+            }
             return
         }
 
         ordersJob = viewModelScope.launch {
             val flow = if (user.role == "store") repository.storeOrdersFlow() else repository.customerOrdersFlow(user.id)
             flow.collect { orders ->
-                _uiState.update { it.copy(orders = orders) }
+                val inferredPaidIds = if (user.role == "customer") {
+                    orders.filter(::isPaymentConfirmed).map { it.order.id }.toSet()
+                } else {
+                    emptySet()
+                }
+
+                _uiState.update { state ->
+                    state.copy(
+                        orders = orders,
+                        paidOrderIds = if (user.role == "customer") state.paidOrderIds + inferredPaidIds else state.paidOrderIds,
+                    )
+                }
 
                 if (user.role == "customer") {
                     orders.forEach { orderDetail ->
@@ -133,6 +168,13 @@ class DulceViewModel @Inject constructor(
             while (isActive && _uiState.value.currentUser != null) {
                 repository.refreshDashboard()
                 delay(5000)
+            }
+        }
+
+        if (user.role == "customer") {
+            viewModelScope.launch {
+                repository.getStorePublicProfile()
+                    .onSuccess { (name, email) -> _uiState.update { it.copy(storeName = name, storeEmail = email) } }
             }
         }
 
@@ -241,9 +283,16 @@ class DulceViewModel @Inject constructor(
                 address = address,
                 notes = notes,
             )
-                .onSuccess { emitMessage("Pedido creado #$it") }
+                .onSuccess { orderId ->
+                    _uiState.update { it.copy(pendingPaymentOrderId = orderId) }
+                    emitMessage("Pedido creado. Continúa con el pago para confirmarlo")
+                }
                 .onFailure { emitError(it.message ?: "No se pudo crear el pedido") }
         }
+    }
+
+    fun consumePendingPaymentOrder() {
+        _uiState.update { it.copy(pendingPaymentOrderId = null) }
     }
 
     fun refreshDashboard() {
@@ -277,7 +326,15 @@ class DulceViewModel @Inject constructor(
     fun payOrder(orderId: Int, cardNumber: String, cardName: String, securityCode: String, expiry: String) {
         launchWithState {
             repository.payOrder(orderId, cardNumber, cardName, securityCode, expiry)
-                .onSuccess { emitMessage(it) }
+                .onSuccess { message ->
+                    _uiState.update { state ->
+                        state.copy(
+                            paidOrderIds = state.paidOrderIds + orderId,
+                            pendingPaymentOrderId = if (state.pendingPaymentOrderId == orderId) null else state.pendingPaymentOrderId,
+                        )
+                    }
+                    emitMessage(message)
+                }
                 .onFailure { emitError(it.message ?: "Pago rechazado") }
         }
     }
@@ -306,6 +363,27 @@ class DulceViewModel @Inject constructor(
                     emitMessage("Producto agregado")
                 }
                 .onFailure { emitError(it.message ?: "No se pudo agregar") }
+        }
+    }
+
+    fun publishProduct(name: String, description: String, basePrice: Double, stock: Int, imageUri: Uri?) {
+        if (imageUri == null) {
+            emitError("Selecciona una imagen para publicar el producto")
+            return
+        }
+
+        launchWithState {
+            val imageUrl = repository.uploadImageFileToCloudinary(imageUri)
+                .getOrElse {
+                    emitError(uploadErrorMessage(it))
+                    return@launchWithState
+                }
+
+            repository.addProduct(name, description, basePrice, stock, imageUrl)
+                .onSuccess {
+                    emitMessage("Producto publicado")
+                }
+                .onFailure { emitError(it.message ?: "No se pudo publicar el producto") }
         }
     }
 
@@ -445,6 +523,9 @@ class DulceViewModel @Inject constructor(
         }
         val paymentMessage = mapMercadoPagoStatusDetail(lowered)
         if (paymentMessage != null) return paymentMessage
+        if (lowered.contains("insufficient") || lowered.contains("fondos insuficientes")) {
+            return "Fondos insuficientes en la tarjeta. Intenta con otra tarjeta o recarga saldo."
+        }
 
         if (lowered.contains("no address associated") || lowered.contains("failed to connect") || lowered.contains("timeout")) {
             return "No hay conexión con el servidor. Verifica internet e inténtalo de nuevo."
@@ -495,6 +576,22 @@ class DulceViewModel @Inject constructor(
             "on_the_way" -> "¡Tu pedido va en camino!"
             "delivered" -> "Tu pedido fue entregado"
             else -> "Tu pedido cambió de estado"
+        }
+    }
+
+    private fun isPaymentConfirmed(order: OrderWithDetails): Boolean {
+        val paidStatuses = setOf("paid", "confirmed", "payment_confirmed")
+        if (order.order.status.lowercase() in paidStatuses) return true
+
+        return order.events.any { event ->
+            val status = event.status.lowercase()
+            val message = event.message.lowercase()
+            status.contains("paid") ||
+                status.contains("payment") ||
+                message.contains("pago aprobado") ||
+                message.contains("pago confirmado") ||
+                message.contains("payment approved") ||
+                message.contains("payment confirmed")
         }
     }
 }

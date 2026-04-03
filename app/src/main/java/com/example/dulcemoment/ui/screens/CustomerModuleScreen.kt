@@ -59,6 +59,7 @@ import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.example.dulcemoment.data.local.OrderWithDetails
 import com.example.dulcemoment.data.local.ProductWithOptions
+import com.example.dulcemoment.domain.orderRequiresPayment
 import com.example.dulcemoment.ui.theme.ThemeConstants
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -76,17 +77,19 @@ fun CustomerModuleScreen(
     products: List<ProductWithOptions>,
     stockState: Map<Int, Boolean>,
     orders: List<OrderWithDetails>,
+    paidOrderIds: Set<Int>,
     alerts: List<String>,
     customerName: String,
     customerEmail: String,
     sellerName: String,
     sellerEmail: String,
+    pendingPaymentOrderId: Int?,
     onCreateOrder: (Int, Int, String, String, String, String, String, String, String) -> Unit,
     onPay: (Int, String, String, String, String) -> Unit,
     onUpdateProfile: (String, String) -> Unit,
+    onPendingPaymentHandled: () -> Unit,
     onOpenOrder: (Int) -> Unit,
     onLogout: () -> Unit,
-    onLogoutAll: () -> Unit,
     onRefresh: () -> Unit,
 ) {
     var selectedSection by rememberSaveable { mutableStateOf(CustomerSection.Catalog) }
@@ -100,9 +103,9 @@ fun CustomerModuleScreen(
     var address by rememberSaveable { mutableStateOf("Av. Principal 123") }
     var notes by rememberSaveable { mutableStateOf("") }
     var showCheckoutSheet by rememberSaveable { mutableStateOf(false) }
+    var payOrderId by rememberSaveable { mutableStateOf<Int?>(null) }
 
     var editableName by rememberSaveable(customerName) { mutableStateOf(customerName) }
-    var editableEmail by rememberSaveable(customerEmail) { mutableStateOf(customerEmail) }
 
     val fieldColors = OutlinedTextFieldDefaults.colors(
         focusedTextColor = ThemeConstants.OnCreamPrimary,
@@ -175,12 +178,24 @@ fun CustomerModuleScreen(
     }
 
     val latestOrder = orders.firstOrNull()
+    val latestPendingPaymentOrder = orders
+        .sortedByDescending { it.order.createdAt }
+        .firstOrNull { requiresPayment(it, paidOrderIds) }
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+
+    LaunchedEffect(pendingPaymentOrderId) {
+        if (pendingPaymentOrderId != null) {
+            payOrderId = pendingPaymentOrderId
+            selectedSection = CustomerSection.Orders
+            showCheckoutSheet = true
+            onPendingPaymentHandled()
+        }
+    }
 
     if (showCheckoutSheet) {
         CheckoutBottomSheet(
             sheetState = sheetState,
-            orderId = latestOrder?.order?.id,
+            orderId = payOrderId,
             onDismiss = { showCheckoutSheet = false },
             onPay = onPay,
         )
@@ -250,8 +265,13 @@ fun CustomerModuleScreen(
                                     Text("Actualizar", fontWeight = FontWeight.SemiBold)
                                 }
                                 Button(
-                                    onClick = { showCheckoutSheet = true },
-                                    enabled = latestOrder != null,
+                                    onClick = {
+                                        latestPendingPaymentOrder?.order?.id?.let { orderId ->
+                                            payOrderId = orderId
+                                            showCheckoutSheet = true
+                                        }
+                                    },
+                                    enabled = latestPendingPaymentOrder != null,
                                     modifier = Modifier.weight(1f),
                                     colors = accentButtonColors
                                 ) {
@@ -476,9 +496,12 @@ fun CustomerModuleScreen(
                                         ) {
                                             Text("Ver detalle", fontWeight = FontWeight.SemiBold)
                                         }
-                                        if (latestOrder.order.status == "created") {
+                                        if (requiresPayment(latestOrder, paidOrderIds)) {
                                             Button(
-                                                onClick = { showCheckoutSheet = true },
+                                                onClick = {
+                                                    payOrderId = latestOrder.order.id
+                                                    showCheckoutSheet = true
+                                                },
                                                 modifier = Modifier.weight(1f),
                                                 colors = accentButtonColors
                                             ) {
@@ -486,10 +509,17 @@ fun CustomerModuleScreen(
                                             }
                                         }
                                     }
-                                    if (latestOrder.order.status == "created") {
+                                    if (requiresPayment(latestOrder, paidOrderIds)) {
                                         Text(
                                             "Al pagar, el vendedor será notificado automáticamente.",
                                             color = ThemeConstants.TextMedium,
+                                            style = MaterialTheme.typography.bodySmall,
+                                            modifier = Modifier.padding(top = 4.dp)
+                                        )
+                                    } else if (latestOrder.order.status == "created") {
+                                        Text(
+                                            "Pago confirmado. Pedido listo para preparación.",
+                                            color = ThemeConstants.ChocolateSecondary,
                                             style = MaterialTheme.typography.bodySmall,
                                             modifier = Modifier.padding(top = 4.dp)
                                         )
@@ -568,9 +598,10 @@ fun CustomerModuleScreen(
                                                         ) {
                                                             Text("Ver detalle", fontWeight = FontWeight.SemiBold)
                                                         }
-                                                        if (orderDetail.order.status == "created") {
+                                                        if (requiresPayment(orderDetail, paidOrderIds)) {
                                                             Button(
                                                                 onClick = {
+                                                                    payOrderId = orderDetail.order.id
                                                                     showCheckoutSheet = true
                                                                 },
                                                                 colors = accentButtonColors,
@@ -579,10 +610,17 @@ fun CustomerModuleScreen(
                                                             }
                                                         }
                                                     }
-                                                    if (orderDetail.order.status == "created") {
+                                                    if (requiresPayment(orderDetail, paidOrderIds)) {
                                                         Text(
                                                             "Al pagar, el vendedor será notificado automáticamente.",
                                                             color = ThemeConstants.TextMedium,
+                                                            style = MaterialTheme.typography.bodySmall,
+                                                            modifier = Modifier.padding(top = 2.dp)
+                                                        )
+                                                    } else if (orderDetail.order.status == "created") {
+                                                        Text(
+                                                            "Pago confirmado. Pedido listo para preparación.",
+                                                            color = ThemeConstants.ChocolateSecondary,
                                                             style = MaterialTheme.typography.bodySmall,
                                                             modifier = Modifier.padding(top = 2.dp)
                                                         )
@@ -622,15 +660,16 @@ fun CustomerModuleScreen(
                                     colors = fieldColors,
                                 )
                                 OutlinedTextField(
-                                    value = editableEmail,
-                                    onValueChange = { editableEmail = it },
+                                    value = customerEmail,
+                                    onValueChange = {},
+                                    enabled = false,
                                     label = { Text("Email") },
                                     modifier = Modifier.fillMaxWidth(),
                                     shape = RoundedCornerShape(16.dp),
                                     colors = fieldColors,
                                 )
                                 Button(
-                                    onClick = { onUpdateProfile(editableName, editableEmail) },
+                                    onClick = { onUpdateProfile(editableName, customerEmail) },
                                     modifier = Modifier.fillMaxWidth(),
                                     colors = primaryButtonColors,
                                 ) {
@@ -655,16 +694,6 @@ fun CustomerModuleScreen(
                                     ) {
                                         Text("Cerrar sesión", fontWeight = FontWeight.SemiBold)
                                     }
-                                }
-                                Button(
-                                    onClick = onLogoutAll,
-                                    modifier = Modifier.fillMaxWidth(),
-                                    colors = ButtonDefaults.buttonColors(
-                                        containerColor = ThemeConstants.ErrorRed,
-                                        contentColor = Color.White,
-                                    ),
-                                ) {
-                                    Text("Cerrar sesión en todos", fontWeight = FontWeight.SemiBold)
                                 }
                             }
                         }
@@ -914,6 +943,10 @@ private fun orderStatusLabel(status: String): String {
         "delivered" -> "Entregado"
         else -> status
     }
+}
+
+private fun requiresPayment(order: OrderWithDetails, paidOrderIds: Set<Int>): Boolean {
+    return orderRequiresPayment(order.order.status, order.order.id in paidOrderIds)
 }
 
 private fun maskCardNumber(raw: String): String {

@@ -45,3 +45,8 @@ Aplicación móvil para clientes y vendedores de DulceMoment.
 
 ## Contacto
 Para soporte o sugerencias: hugo8@ids-hugo.com
+
+## Integración Backend de Notificaciones Push
+Para implementar el backend compatible con la app (registro de token FCM, payload y eventos de envío), revisa:
+
+- `app/BACKEND_FCM_CONTRACT.md`

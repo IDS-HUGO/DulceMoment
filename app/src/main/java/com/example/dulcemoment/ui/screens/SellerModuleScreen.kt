@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -55,6 +56,7 @@ import coil.compose.AsyncImage
 import com.example.dulcemoment.data.local.OrderWithDetails
 import com.example.dulcemoment.data.local.ProductWithOptions
 import com.example.dulcemoment.data.repo.AdminOrderSummary
+import com.example.dulcemoment.domain.sellerNextOrderStatuses
 import com.example.dulcemoment.ui.theme.ThemeConstants
 
 private enum class SellerSection {
@@ -70,10 +72,7 @@ fun SellerModuleScreen(
     stockState: Map<Int, Boolean>,
     orders: List<OrderWithDetails>,
     adminSummary: AdminOrderSummary?,
-    suggestedImageUrl: String,
-    onUploadImageFile: (Uri) -> Unit,
-    onUploadImageUrl: (String) -> Unit,
-    onAddProduct: (String, String, Double, Int, String) -> Unit,
+    onPublishProduct: (String, String, Double, Int, Uri?) -> Unit,
     onEditProduct: (Int, String, String, Double, Int) -> Unit,
     onDeleteProduct: (Int) -> Unit,
     onLoadSummary: (String) -> Unit,
@@ -82,7 +81,6 @@ fun SellerModuleScreen(
     onStageUpdate: (Int, String) -> Unit,
     onOpenOrder: (Int) -> Unit,
     onLogout: () -> Unit,
-    onLogoutAll: () -> Unit,
     onRefresh: () -> Unit,
 ) {
     var selectedSection by rememberSaveable { mutableStateOf(SellerSection.Summary) }
@@ -90,11 +88,11 @@ fun SellerModuleScreen(
     var description by rememberSaveable { mutableStateOf("Pastel artesanal") }
     var basePrice by rememberSaveable { mutableStateOf("350") }
     var stock by rememberSaveable { mutableStateOf("8") }
-    var imageSourceUrl by rememberSaveable { mutableStateOf("") }
-    var imageUrl by rememberSaveable { mutableStateOf("") }
     var selectedImageUri by rememberSaveable { mutableStateOf<String?>(null) }
     var editingProductId by rememberSaveable { mutableStateOf<Int?>(null) }
     var selectedPeriod by rememberSaveable { mutableStateOf("day") }
+    var orderSearch by rememberSaveable { mutableStateOf("") }
+    var selectedStatusFilter by rememberSaveable { mutableStateOf("all") }
 
     val fieldColors = OutlinedTextFieldDefaults.colors(
         focusedTextColor = ThemeConstants.OnCreamPrimary,
@@ -127,12 +125,6 @@ fun SellerModuleScreen(
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
         if (uri != null) {
             selectedImageUri = uri.toString()
-        }
-    }
-
-    LaunchedEffect(suggestedImageUrl) {
-        if (suggestedImageUrl.isNotBlank()) {
-            imageUrl = suggestedImageUrl
         }
     }
 
@@ -323,6 +315,138 @@ fun SellerModuleScreen(
                                 "Pedidos activos: ${orders.count { it.order.status != "delivered" }}",
                                 color = ThemeConstants.TextMedium,
                             )
+
+                            Card(
+                                colors = CardDefaults.cardColors(containerColor = ThemeConstants.SurfaceLight),
+                                modifier = Modifier.fillMaxWidth(),
+                            ) {
+                                Column(
+                                    modifier = Modifier.padding(12.dp),
+                                    verticalArrangement = Arrangement.spacedBy(10.dp),
+                                ) {
+                                    Text(
+                                        "Gestión de pedidos",
+                                        style = MaterialTheme.typography.titleMedium,
+                                        fontWeight = FontWeight.SemiBold,
+                                        color = ThemeConstants.ChocolateSecondary,
+                                    )
+
+                                    if (orders.isEmpty()) {
+                                        Text("No hay pedidos por gestionar.", color = ThemeConstants.TextMedium)
+                                    } else {
+                                        OutlinedTextField(
+                                            value = orderSearch,
+                                            onValueChange = { orderSearch = it },
+                                            label = { Text("Buscar por # pedido") },
+                                            modifier = Modifier.fillMaxWidth(),
+                                            shape = RoundedCornerShape(16.dp),
+                                            colors = fieldColors,
+                                        )
+
+                                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+                                            statusFilterChip(
+                                                selected = selectedStatusFilter == "all",
+                                                label = "Todos",
+                                                onClick = { selectedStatusFilter = "all" },
+                                                accentTonalColors = accentTonalColors,
+                                            )
+                                            statusFilterChip(
+                                                selected = selectedStatusFilter == "created",
+                                                label = "Confirmado",
+                                                onClick = { selectedStatusFilter = "created" },
+                                                accentTonalColors = accentTonalColors,
+                                            )
+                                            statusFilterChip(
+                                                selected = selectedStatusFilter == "in_oven",
+                                                label = "En horno",
+                                                onClick = { selectedStatusFilter = "in_oven" },
+                                                accentTonalColors = accentTonalColors,
+                                            )
+                                        }
+                                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+                                            statusFilterChip(
+                                                selected = selectedStatusFilter == "decorating",
+                                                label = "Decorando",
+                                                onClick = { selectedStatusFilter = "decorating" },
+                                                accentTonalColors = accentTonalColors,
+                                            )
+                                            statusFilterChip(
+                                                selected = selectedStatusFilter == "on_the_way",
+                                                label = "En camino",
+                                                onClick = { selectedStatusFilter = "on_the_way" },
+                                                accentTonalColors = accentTonalColors,
+                                            )
+                                            statusFilterChip(
+                                                selected = selectedStatusFilter == "delivered",
+                                                label = "Entregado",
+                                                onClick = { selectedStatusFilter = "delivered" },
+                                                accentTonalColors = accentTonalColors,
+                                            )
+                                        }
+
+                                        val normalizedQuery = orderSearch.trim()
+                                        val filteredOrders = orders
+                                            .filter { order ->
+                                                selectedStatusFilter == "all" || order.order.status == selectedStatusFilter
+                                            }
+                                            .filter { order ->
+                                                normalizedQuery.isBlank() || order.order.id.toString().contains(normalizedQuery)
+                                            }
+                                            .sortedByDescending { it.order.createdAt }
+                                        if (filteredOrders.isEmpty()) {
+                                            Text("No hay pedidos que coincidan con el filtro.", color = ThemeConstants.TextMedium)
+                                        }
+                                        filteredOrders.forEach { orderDetail ->
+                                                Card(
+                                                    modifier = Modifier.fillMaxWidth(),
+                                                    colors = CardDefaults.cardColors(containerColor = ThemeConstants.SurfaceLighter),
+                                                ) {
+                                                    Column(
+                                                        modifier = Modifier.padding(10.dp),
+                                                        verticalArrangement = Arrangement.spacedBy(6.dp),
+                                                    ) {
+                                                        Text(
+                                                            "Pedido #${orderDetail.order.id}",
+                                                            color = ThemeConstants.ChocolateSecondary,
+                                                            fontWeight = FontWeight.SemiBold,
+                                                        )
+                                                        Text(
+                                                            "Estado: ${orderStatusLabel(orderDetail.order.status)}",
+                                                            color = ThemeConstants.OnCreamPrimary,
+                                                        )
+                                                        Text(
+                                                            "Total: $${"%.2f".format(orderDetail.order.total)}",
+                                                            color = ThemeConstants.TextMedium,
+                                                        )
+
+                                                        val nextStatuses = sellerNextOrderStatuses(orderDetail.order.status)
+                                                        if (nextStatuses.isEmpty()) {
+                                                            Text("Pedido finalizado", color = ThemeConstants.TextMedium)
+                                                        } else {
+                                                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                                                nextStatuses.forEach { (statusValue, label) ->
+                                                                    FilledTonalButton(
+                                                                        onClick = { onStageUpdate(orderDetail.order.id, statusValue) },
+                                                                        colors = accentTonalColors,
+                                                                    ) {
+                                                                        Text(label, fontWeight = FontWeight.SemiBold)
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+
+                                                        Button(
+                                                            onClick = { onOpenOrder(orderDetail.order.id) },
+                                                            colors = primaryButtonColors,
+                                                        ) {
+                                                            Text("Ver detalle", fontWeight = FontWeight.SemiBold)
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                    }
+                                }
+                            }
                         }
                     }
                 }
@@ -375,16 +499,6 @@ fun SellerModuleScreen(
                                 colors = fieldColors,
                                 textStyle = MaterialTheme.typography.bodyLarge.copy(color = ThemeConstants.OnCreamPrimary),
                             )
-                            OutlinedTextField(
-                                value = imageSourceUrl,
-                                onValueChange = { imageSourceUrl = it },
-                                label = { Text("URL de imagen (opcional)") },
-                                modifier = Modifier.fillMaxWidth(),
-                                shape = RoundedCornerShape(16.dp),
-                                colors = fieldColors,
-                                textStyle = MaterialTheme.typography.bodyLarge.copy(color = ThemeConstants.OnCreamPrimary),
-                                singleLine = true,
-                            )
                             Box(
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -430,39 +544,27 @@ fun SellerModuleScreen(
                                     Text("Seleccionar", maxLines = 1, fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
                                 }
                                 FilledTonalButton(
-                                    onClick = { selectedImageUri?.let { onUploadImageFile(Uri.parse(it)) } },
+                                    onClick = { selectedImageUri = null },
                                     modifier = Modifier.weight(1f),
                                     enabled = selectedImageUri != null,
                                     colors = accentTonalColors,
                                 ) {
-                                    Text("Subir", maxLines = 1, fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
+                                    Text("Quitar", maxLines = 1, fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
                                 }
                             }
-                            FilledTonalButton(
-                                onClick = { onUploadImageUrl(imageSourceUrl.trim()) },
-                                enabled = imageSourceUrl.startsWith("http", ignoreCase = true),
-                                modifier = Modifier.fillMaxWidth(),
-                                colors = accentTonalColors,
-                            ) {
-                                Text("Usar URL directa", fontWeight = FontWeight.SemiBold)
-                            }
-                            if (imageUrl.isNotBlank()) {
-                                Text("Imagen lista para publicar", color = ThemeConstants.ChocolateSecondary, fontWeight = FontWeight.SemiBold)
-                            } else {
-                                Text("Selecciona una imagen y súbela", color = ThemeConstants.TextMedium)
-                            }
+                            Text("La imagen se sube automáticamente al publicar.", color = ThemeConstants.TextMedium)
                             Button(
                                 onClick = {
                                     val price = basePrice.toDoubleOrNull() ?: return@Button
                                     val units = stock.toIntOrNull() ?: return@Button
                                     val editId = editingProductId
                                     if (editId == null) {
-                                        onAddProduct(name, description, price, units, imageUrl)
+                                        onPublishProduct(name, description, price, units, selectedImageUri?.let(Uri::parse))
                                     } else {
                                         onEditProduct(editId, name, description, price, units)
                                     }
                                 },
-                                enabled = imageUrl.isNotBlank() || editingProductId != null,
+                                enabled = selectedImageUri != null || editingProductId != null,
                                 modifier = Modifier.fillMaxWidth(),
                                 colors = primaryButtonColors,
                             ) {
@@ -472,7 +574,7 @@ fun SellerModuleScreen(
                                 FilledTonalButton(
                                     onClick = {
                                         editingProductId = null
-                                        imageUrl = ""
+                                        selectedImageUri = null
                                     },
                                     modifier = Modifier.fillMaxWidth(),
                                     colors = accentTonalColors,
@@ -540,7 +642,7 @@ fun SellerModuleScreen(
                                             description = product.product.description
                                             basePrice = product.product.basePrice.toString()
                                             stock = product.product.stock.toString()
-                                            imageUrl = product.product.imageUrl
+                                            selectedImageUri = null
                                             selectedSection = SellerSection.Create
                                         },
                                         colors = accentTonalColors,
@@ -588,13 +690,6 @@ fun SellerModuleScreen(
                                 ) {
                                     Text("Actualizar datos", fontWeight = FontWeight.SemiBold)
                                 }
-                                FilledTonalButton(
-                                    onClick = onLogoutAll,
-                                    modifier = Modifier.fillMaxWidth(),
-                                    colors = accentTonalColors,
-                                ) {
-                                    Text("Cerrar sesión en todos", fontWeight = FontWeight.SemiBold)
-                                }
                                 Button(
                                     onClick = onLogout,
                                     modifier = Modifier.fillMaxWidth(),
@@ -622,5 +717,28 @@ private fun orderStatusLabel(status: String): String {
         "on_the_way" -> "En camino"
         "delivered" -> "Entregado"
         else -> status
+    }
+}
+
+@Composable
+private fun RowScope.statusFilterChip(
+    selected: Boolean,
+    label: String,
+    onClick: () -> Unit,
+    accentTonalColors: androidx.compose.material3.ButtonColors,
+) {
+    FilledTonalButton(
+        onClick = onClick,
+        colors = if (selected) {
+            accentTonalColors
+        } else {
+            ButtonDefaults.filledTonalButtonColors(
+                containerColor = ThemeConstants.SurfaceLighter,
+                contentColor = ThemeConstants.OnCreamPrimary,
+            )
+        },
+        modifier = Modifier.weight(1f),
+    ) {
+        Text(label, fontWeight = FontWeight.SemiBold, fontSize = 11.sp)
     }
 }

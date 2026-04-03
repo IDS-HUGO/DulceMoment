@@ -14,6 +14,7 @@ import com.example.dulcemoment.data.local.ProductWithOptions
 import com.example.dulcemoment.data.local.PushAlertEntity
 import com.example.dulcemoment.data.local.TrackingEventEntity
 import com.example.dulcemoment.data.local.UserEntity
+import com.example.dulcemoment.domain.isValidOrderStatusTransition
 import com.example.dulcemoment.data.network.ApiService
 import com.example.dulcemoment.data.network.AuthRequest
 import com.example.dulcemoment.data.network.CloudinaryUploadRequest
@@ -440,6 +441,14 @@ class LocalDulceRepository @Inject constructor(
             refreshProducts()
             refreshOrders()
             appendAlert(customerId, response.id, "Pedido creado", "Tu pedido fue recibido en la tienda")
+            resolveStoreUserIdOrNull()?.let { storeId ->
+                appendAlert(
+                    userId = storeId,
+                    orderId = response.id,
+                    title = "Nuevo pedido",
+                    body = "Se recibió el pedido #${response.id}. Esperando confirmación de pago.",
+                )
+            }
             response.id
         }.recoverCatching { error ->
             throw IllegalStateException(mapErrorToUserMessage(error, "No se pudo crear el pedido"))
@@ -449,6 +458,16 @@ class LocalDulceRepository @Inject constructor(
     override suspend fun updateOrderStatus(orderId: Int, status: String): Result<Unit> {
         val valid = setOf("in_oven", "decorating", "on_the_way", "delivered")
         if (status !in valid) return Result.failure(IllegalArgumentException("Estado no válido"))
+
+        val currentOrder = ordersState.value.firstOrNull { it.order.id == orderId }?.order
+            ?: return Result.failure(IllegalArgumentException("Pedido no encontrado"))
+        if (!isValidOrderStatusTransition(currentOrder.status, status)) {
+            return Result.failure(
+                IllegalStateException(
+                    "Transición inválida: ${currentOrder.status} -> $status. Debe seguir el flujo Confirmado > En horno > Decorando > En camino > Entregado"
+                )
+            )
+        }
 
         return runCatching {
             val message = when (status) {
@@ -549,10 +568,31 @@ class LocalDulceRepository @Inject constructor(
 
             refreshOrders()
             val last4 = digits.takeLast(4)
-            when {
+            val customerId = ordersState.value.firstOrNull { it.order.id == orderId }?.order?.customerId
+            val successMessage = when {
                 !message.isNullOrBlank() -> "$message • ****$last4"
                 else -> "Pago aprobado • ****$last4"
             }
+
+            customerId?.let {
+                appendAlert(
+                    userId = it,
+                    orderId = orderId,
+                    title = "Pago confirmado",
+                    body = "Tu pago del pedido #$orderId fue aprobado.",
+                )
+            }
+
+            resolveStoreUserIdOrNull()?.let { storeId ->
+                appendAlert(
+                    userId = storeId,
+                    orderId = orderId,
+                    title = "Pedido pagado",
+                    body = "El pedido #$orderId fue pagado y está confirmado.",
+                )
+            }
+
+            successMessage
         }
     }
 
@@ -804,6 +844,12 @@ class LocalDulceRepository @Inject constructor(
         if (value.isNullOrBlank()) return System.currentTimeMillis()
         return runCatching { Instant.parse(value).toEpochMilli() }
             .getOrElse { System.currentTimeMillis() }
+    }
+
+    private suspend fun resolveStoreUserIdOrNull(): Int? {
+        return runCatching {
+            apiCallWithRefresh { token -> apiService.storePublicProfile(token).id }
+        }.getOrNull()
     }
 
     private fun startOfPeriodMillis(period: String, nowMillis: Long): Long {
