@@ -61,6 +61,23 @@ class SessionStore(context: Context) {
             .apply()
     }
 
+    fun loadPaidOrderIds(userId: Int): Set<Int> {
+        val raw = prefs.getStringSet("paid_orders_user_$userId", emptySet()).orEmpty()
+        return raw.mapNotNull { it.toIntOrNull() }.toSet()
+    }
+
+    fun savePaidOrderIds(userId: Int, orderIds: Set<Int>) {
+        prefs.edit()
+            .putStringSet("paid_orders_user_$userId", orderIds.map { it.toString() }.toSet())
+            .apply()
+    }
+
+    fun markOrderPaid(userId: Int, orderId: Int): Set<Int> {
+        val updated = loadPaidOrderIds(userId) + orderId
+        savePaidOrderIds(userId, updated)
+        return updated
+    }
+
     fun clear() {
         prefs.edit().clear().apply()
     }

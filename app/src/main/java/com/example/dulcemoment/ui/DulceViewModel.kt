@@ -9,6 +9,7 @@ import com.example.dulcemoment.data.local.PushAlertEntity
 import com.example.dulcemoment.data.local.UserEntity
 import com.example.dulcemoment.data.repo.AdminOrderSummary
 import com.example.dulcemoment.data.repo.CakeRepository
+import com.example.dulcemoment.data.repo.SessionStore
 import com.example.dulcemoment.ui.state.UiErrorType
 import com.example.dulcemoment.ui.state.UiState
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -47,6 +48,7 @@ class DulceViewModel @Inject constructor(
     @param:ApplicationContext private val appContext: android.content.Context,
 ) : ViewModel() {
     private val notifier = DulceNotifier(appContext)
+    private val sessionStore = SessionStore(appContext)
 
     private val _uiState = MutableStateFlow(DulceUiState())
     val uiState: StateFlow<DulceUiState> = _uiState.asStateFlow()
@@ -113,11 +115,21 @@ class DulceViewModel @Inject constructor(
                 } else {
                     emptySet()
                 }
+                val persistedPaidIds = if (user.role == "customer") {
+                    sessionStore.loadPaidOrderIds(user.id)
+                } else {
+                    emptySet()
+                }
+                val mergedPaidIds = persistedPaidIds + inferredPaidIds
+
+                if (user.role == "customer" && mergedPaidIds != persistedPaidIds) {
+                    sessionStore.savePaidOrderIds(user.id, mergedPaidIds)
+                }
 
                 _uiState.update { state ->
                     state.copy(
                         orders = orders,
-                        paidOrderIds = if (user.role == "customer") state.paidOrderIds + inferredPaidIds else state.paidOrderIds,
+                        paidOrderIds = if (user.role == "customer") mergedPaidIds else state.paidOrderIds,
                     )
                 }
 
@@ -310,12 +322,23 @@ class DulceViewModel @Inject constructor(
     }
 
     fun payOrder(orderId: Int, cardNumber: String, cardName: String, securityCode: String, expiry: String) {
+        val currentUser = _uiState.value.currentUser
+        if (currentUser?.role == "customer" && orderId in _uiState.value.paidOrderIds) {
+            emitMessage("Este pedido ya está pagado. No es necesario volver a cobrar.")
+            return
+        }
+
         launchWithState {
             repository.payOrder(orderId, cardNumber, cardName, securityCode, expiry)
                 .onSuccess { message ->
+                    val mergedPaidIds = if (currentUser?.role == "customer") {
+                        sessionStore.markOrderPaid(currentUser.id, orderId)
+                    } else {
+                        _uiState.value.paidOrderIds + orderId
+                    }
                     _uiState.update { state ->
                         state.copy(
-                            paidOrderIds = state.paidOrderIds + orderId,
+                            paidOrderIds = mergedPaidIds,
                             pendingPaymentOrderId = if (state.pendingPaymentOrderId == orderId) null else state.pendingPaymentOrderId,
                         )
                     }

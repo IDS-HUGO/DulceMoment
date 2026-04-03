@@ -181,6 +181,12 @@ fun CustomerModuleScreen(
     val latestPendingPaymentOrder = orders
         .sortedByDescending { it.order.createdAt }
         .firstOrNull { requiresPayment(it, paidOrderIds) }
+    val pendingOrders = orders
+        .filter { requiresPayment(it, paidOrderIds) }
+        .sortedByDescending { it.order.createdAt }
+    val paidOrders = orders
+        .filter { !requiresPayment(it, paidOrderIds) }
+        .sortedByDescending { it.order.createdAt }
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
     LaunchedEffect(pendingPaymentOrderId) {
@@ -542,17 +548,15 @@ fun CustomerModuleScreen(
                                 verticalArrangement = Arrangement.spacedBy(10.dp)
                             ) {
                                 Text(
-                                    "Mis pedidos",
+                                    "Por pagar",
                                     style = MaterialTheme.typography.titleMedium,
                                     fontWeight = FontWeight.Bold,
                                     color = ThemeConstants.ChocolateSecondary
                                 )
-                                if (orders.isEmpty()) {
-                                    Text("Aún no has realizado pedidos.", color = ThemeConstants.TextMedium)
+                                if (pendingOrders.isEmpty()) {
+                                    Text("No tienes pedidos pendientes de pago.", color = ThemeConstants.TextMedium)
                                 } else {
-                                    orders
-                                        .sortedByDescending { it.order.createdAt }
-                                        .forEach { orderDetail ->
+                                    pendingOrders.forEach { orderDetail ->
                                             Card(
                                                 modifier = Modifier
                                                     .fillMaxWidth()
@@ -610,24 +614,97 @@ fun CustomerModuleScreen(
                                                             }
                                                         }
                                                     }
-                                                    if (requiresPayment(orderDetail, paidOrderIds)) {
-                                                        Text(
-                                                            "Al pagar, el vendedor será notificado automáticamente.",
-                                                            color = ThemeConstants.TextMedium,
-                                                            style = MaterialTheme.typography.bodySmall,
-                                                            modifier = Modifier.padding(top = 2.dp)
-                                                        )
-                                                    } else if (orderDetail.order.status == "created") {
-                                                        Text(
-                                                            "Pago confirmado. Pedido listo para preparación.",
-                                                            color = ThemeConstants.ChocolateSecondary,
-                                                            style = MaterialTheme.typography.bodySmall,
-                                                            modifier = Modifier.padding(top = 2.dp)
-                                                        )
-                                                    }
+                                                    Text(
+                                                        "Al pagar, el vendedor será notificado automáticamente.",
+                                                        color = ThemeConstants.TextMedium,
+                                                        style = MaterialTheme.typography.bodySmall,
+                                                        modifier = Modifier.padding(top = 2.dp)
+                                                    )
                                                 }
                                             }
                                         }
+                                }
+                            }
+                        }
+                    }
+
+                    item {
+                        Card(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 12.dp),
+                            colors = CardDefaults.cardColors(containerColor = ThemeConstants.SurfaceLight),
+                            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                        ) {
+                            Column(
+                                modifier = Modifier.padding(14.dp),
+                                verticalArrangement = Arrangement.spacedBy(10.dp)
+                            ) {
+                                Text(
+                                    "Pagados / Confirmados",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = ThemeConstants.ChocolateSecondary
+                                )
+                                if (paidOrders.isEmpty()) {
+                                    Text("Aún no tienes pedidos pagados.", color = ThemeConstants.TextMedium)
+                                } else {
+                                    paidOrders.forEach { orderDetail ->
+                                        Card(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .padding(vertical = 4.dp),
+                                            colors = CardDefaults.cardColors(containerColor = ThemeConstants.SurfaceLighter),
+                                            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                                        ) {
+                                            Column(
+                                                modifier = Modifier.padding(10.dp),
+                                                verticalArrangement = Arrangement.spacedBy(6.dp),
+                                            ) {
+                                                Row(
+                                                    modifier = Modifier.fillMaxWidth(),
+                                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                                    verticalAlignment = Alignment.CenterVertically
+                                                ) {
+                                                    Text(
+                                                        "Pedido #${orderDetail.order.id}",
+                                                        color = ThemeConstants.ChocolateSecondary,
+                                                        fontWeight = FontWeight.SemiBold,
+                                                        style = MaterialTheme.typography.bodyLarge
+                                                    )
+                                                    Text(
+                                                        orderStatusLabel(orderDetail.order.status),
+                                                        color = ThemeConstants.ChocolateSecondary,
+                                                        style = MaterialTheme.typography.bodySmall,
+                                                        fontWeight = FontWeight.SemiBold
+                                                    )
+                                                }
+                                                Text(
+                                                    "Fecha: ${formatOrderDate(orderDetail.order.createdAt)}",
+                                                    color = ThemeConstants.TextMedium,
+                                                    style = MaterialTheme.typography.bodySmall
+                                                )
+                                                Text(
+                                                    "Total: $${"%.2f".format(orderDetail.order.total)}",
+                                                    color = ThemeConstants.OnCreamPrimary,
+                                                    style = MaterialTheme.typography.bodyMedium
+                                                )
+                                                Button(
+                                                    onClick = { onOpenOrder(orderDetail.order.id) },
+                                                    colors = primaryButtonColors,
+                                                ) {
+                                                    Text("Ver detalle", fontWeight = FontWeight.SemiBold)
+                                                }
+                                                if (orderDetail.order.status == "created") {
+                                                    Text(
+                                                        "Pago confirmado. Pedido listo para preparación.",
+                                                        color = ThemeConstants.ChocolateSecondary,
+                                                        style = MaterialTheme.typography.bodySmall,
+                                                    )
+                                                }
+                                            }
+                                        }
+                                    }
                                 }
                             }
                         }
