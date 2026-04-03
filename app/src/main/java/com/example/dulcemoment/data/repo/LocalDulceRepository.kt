@@ -455,6 +455,17 @@ class LocalDulceRepository @Inject constructor(
         }
     }
 
+    override suspend fun cancelOrder(orderId: Int): Result<Unit> {
+        return runCatching {
+            apiCallWithRefresh { token ->
+                apiService.cancelOrder(token, orderId)
+            }
+            refreshOrders()
+        }.recoverCatching { error ->
+            throw IllegalStateException(mapErrorToUserMessage(error, "No se pudo cancelar el pedido"))
+        }
+    }
+
     override suspend fun updateOrderStatus(orderId: Int, status: String): Result<Unit> {
         val valid = setOf("in_oven", "decorating", "on_the_way", "delivered")
         if (status !in valid) return Result.failure(IllegalArgumentException("Estado no válido"))

@@ -323,7 +323,9 @@ class DulceViewModel @Inject constructor(
 
     fun payOrder(orderId: Int, cardNumber: String, cardName: String, securityCode: String, expiry: String) {
         val currentUser = _uiState.value.currentUser
-        if (currentUser?.role == "customer" && orderId in _uiState.value.paidOrderIds) {
+        val order = _uiState.value.orders.firstOrNull { it.order.id == orderId }
+        val alreadyPaid = orderId in _uiState.value.paidOrderIds || (order?.let(::isPaymentConfirmed) == true)
+        if (currentUser?.role == "customer" && alreadyPaid) {
             emitMessage("Este pedido ya está pagado. No es necesario volver a cobrar.")
             return
         }
@@ -345,6 +347,14 @@ class DulceViewModel @Inject constructor(
                     emitMessage(message)
                 }
                 .onFailure { emitError(it.message ?: "Pago rechazado") }
+        }
+    }
+
+    fun cancelOrder(orderId: Int) {
+        launchWithState {
+            repository.cancelOrder(orderId)
+                .onSuccess { emitMessage("Pedido cancelado") }
+                .onFailure { emitError(it.message ?: "No se pudo cancelar el pedido") }
         }
     }
 
@@ -597,8 +607,10 @@ class DulceViewModel @Inject constructor(
             val message = event.message.lowercase()
             status.contains("paid") ||
                 status.contains("payment") ||
+                message.contains("pago recibido") ||
                 message.contains("pago aprobado") ||
                 message.contains("pago confirmado") ||
+                message.contains("pedido confirmado") ||
                 message.contains("payment approved") ||
                 message.contains("payment confirmed")
         }

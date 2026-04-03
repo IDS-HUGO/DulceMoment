@@ -86,6 +86,7 @@ fun CustomerModuleScreen(
     pendingPaymentOrderId: Int?,
     onCreateOrder: (Int, Int, String, String, String, String, String, String, String) -> Unit,
     onPay: (Int, String, String, String, String) -> Unit,
+    onCancelOrder: (Int) -> Unit,
     onUpdateProfile: (String, String) -> Unit,
     onPendingPaymentHandled: () -> Unit,
     onOpenOrder: (Int) -> Unit,
@@ -612,6 +613,17 @@ fun CustomerModuleScreen(
                                                             ) {
                                                                 Text("Pagar", fontWeight = FontWeight.SemiBold)
                                                             }
+                                                            if (orderDetail.order.status == "draft") {
+                                                                Button(
+                                                                    onClick = { onCancelOrder(orderDetail.order.id) },
+                                                                    colors = ButtonDefaults.buttonColors(
+                                                                        containerColor = ThemeConstants.SurfaceLighter,
+                                                                        contentColor = ThemeConstants.ChocolateSecondary,
+                                                                    ),
+                                                                ) {
+                                                                    Text("Cancelar", fontWeight = FontWeight.SemiBold)
+                                                                }
+                                                            }
                                                         }
                                                     }
                                                     Text(
@@ -1023,7 +1035,20 @@ private fun orderStatusLabel(status: String): String {
 }
 
 private fun requiresPayment(order: OrderWithDetails, paidOrderIds: Set<Int>): Boolean {
-    return orderRequiresPayment(order.order.status, order.order.id in paidOrderIds)
+    val status = order.order.status
+    val byStatus = status in setOf("draft", "created")
+    val paidByMemory = order.order.id in paidOrderIds
+    val paidByEvents = order.events.any { event ->
+        val text = event.message.lowercase()
+        text.contains("pago recibido") ||
+            text.contains("pago aprobado") ||
+            text.contains("pago confirmado") ||
+            text.contains("pedido confirmado") ||
+            text.contains("payment approved") ||
+            text.contains("payment confirmed")
+    }
+    val isPaid = paidByMemory || paidByEvents
+    return byStatus && !isPaid
 }
 
 private fun maskCardNumber(raw: String): String {

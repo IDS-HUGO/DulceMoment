@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
@@ -190,6 +191,7 @@ fun DulceApp(
                         viewModel.createOrder(productId, quantity, ingredients, size, shape, flavor, color, address, notes)
                     },
                     onPay = viewModel::payOrder,
+                    onCancelOrder = viewModel::cancelOrder,
                     onUpdateProfile = viewModel::updateCustomerProfile,
                     onPendingPaymentHandled = viewModel::consumePendingPaymentOrder,
                     onOpenOrder = { orderId -> navController.navigate(Routes.orderDetail(orderId)) },
@@ -226,10 +228,11 @@ fun DulceApp(
                 OrderDetailScreen(
                     order = order,
                     isStore = uiState.currentUser?.role == "store",
-                    paymentAlreadyConfirmed = order?.order?.id?.let { it in uiState.paidOrderIds } == true,
+                    paymentAlreadyConfirmed = (order?.order?.id?.let { it in uiState.paidOrderIds } == true) || isOrderPaymentConfirmed(order),
                     products = uiState.products,
                     onPay = { id: Int, card: String, name: String, cvv: String, exp: String -> viewModel.payOrder(id, card, name, cvv, exp) },
                     onStageUpdate = { id: Int, status: String -> viewModel.advanceOrder(id, status) },
+                    onCancelOrder = { id: Int -> viewModel.cancelOrder(id) },
                     onBack = { navController.popBackStack() },
                 )
             }
@@ -603,6 +606,7 @@ fun OrderDetailScreen(
     onBack: () -> Unit,
     onPay: (Int, String, String, String, String) -> Unit,
     onStageUpdate: (Int, String) -> Unit,
+    onCancelOrder: (Int) -> Unit,
 ) {
     var cardNumber by rememberSaveable { mutableStateOf("") }
     var cardName by rememberSaveable { mutableStateOf("") }
@@ -619,7 +623,7 @@ fun OrderDetailScreen(
     ) {
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             Button(onClick = onBack) { Text("Volver") }
-            if (!isStore && order != null) {
+            if (!isStore && order != null && order.order.status == "draft" && !paymentAlreadyConfirmed) {
                 Button(onClick = onBack) { Text("Cancelar pago") }
             }
         }
@@ -686,7 +690,7 @@ fun OrderDetailScreen(
                 Button(onClick = { onStageUpdate(order.order.id, "delivered") }) { Text("Entregar") }
             }
         } else {
-            val canPayThisOrder = !paymentAlreadyConfirmed && order.order.status == "created"
+            val canPayThisOrder = !paymentAlreadyConfirmed && order.order.status in setOf("draft", "created")
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(containerColor = ThemeConstants.SurfaceLight),
@@ -757,11 +761,21 @@ fun OrderDetailScreen(
                             Button(
                                 onClick = { onPay(order.order.id, cardNumber, cardName, cvv, expiry) },
                                 modifier = Modifier.weight(1f),
+                                colors = ButtonDefaults.buttonColors(containerColor = ThemeConstants.ChocolateSecondary, contentColor = androidx.compose.ui.graphics.Color.White),
                             ) { Text("Pagar pedido") }
-                            Button(
-                                onClick = onBack,
-                                modifier = Modifier.weight(1f),
-                            ) { Text("Cancelar") }
+                            if (order.order.status == "draft") {
+                                Button(
+                                    onClick = { onCancelOrder(order.order.id) },
+                                    modifier = Modifier.weight(1f),
+                                    colors = ButtonDefaults.buttonColors(containerColor = ThemeConstants.PastelAccent, contentColor = ThemeConstants.ChocolateSecondary),
+                                ) { Text("Cancelar pedido") }
+                            } else {
+                                Button(
+                                    onClick = onBack,
+                                    modifier = Modifier.weight(1f),
+                                    colors = ButtonDefaults.buttonColors(containerColor = ThemeConstants.PastelAccent, contentColor = ThemeConstants.ChocolateSecondary),
+                                ) { Text("Cancelar") }
+                            }
                         }
                     } else {
                         Text(
@@ -773,6 +787,19 @@ fun OrderDetailScreen(
                 }
             }
         }
+    }
+}
+
+private fun isOrderPaymentConfirmed(order: OrderWithDetails?): Boolean {
+    if (order == null) return false
+    return order.events.any { event ->
+        val message = event.message.lowercase()
+        message.contains("pago recibido") ||
+            message.contains("pago aprobado") ||
+            message.contains("pago confirmado") ||
+            message.contains("pedido confirmado") ||
+            message.contains("payment approved") ||
+            message.contains("payment confirmed")
     }
 }
 

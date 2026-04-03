@@ -55,6 +55,8 @@ interface CakeRepository {
         notes: String,
     ): Result<Int>
 
+    suspend fun cancelOrder(orderId: Int): Result<Unit>
+
     suspend fun updateOrderStatus(orderId: Int, status: String): Result<Unit>
     suspend fun payOrder(
         orderId: Int,

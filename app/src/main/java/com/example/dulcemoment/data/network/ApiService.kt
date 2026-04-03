@@ -83,6 +83,12 @@ interface ApiService {
         @Query("customer_id") customerId: Int? = null,
     ): List<OrderDto>
 
+    @POST("api/v1/orders/{orderId}/cancel")
+    suspend fun cancelOrder(
+        @Header("Authorization") authHeader: String,
+        @Path("orderId") orderId: Int,
+    ): OrderDto
+
     @POST("api/v1/orders/{orderId}/status")
     suspend fun updateOrderStatus(
         @Header("Authorization") authHeader: String,
